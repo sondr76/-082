@@ -1,0 +1,4714 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocTime - Онлайн-запись к врачу</title>
+    
+    <!-- FAVICON -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231A73E8'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' font-family='Arial' fill='white' font-weight='bold'%3E❤%3C/text%3E%3C/svg%3E">
+    
+    <style>
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1A73E8;
+            --primary-light: #4285F4;
+            --primary-dark: #1557B0;
+            --primary-bg: #E8F0FE;
+            --white: #FFFFFF;
+            --gray-bg: #F0F4F8;
+            --gray-text: #5F6368;
+            --gray-light: #DADCE0;
+            --gray-border: #E8EAED;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 8px 30px rgba(26, 115, 232, 0.15);
+            --green: #34A853;
+            --red: #EA4335;
+            --gold: #FBBC04;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+            background: var(--gray-bg);
+            color: #202124;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ============================================================
+           ФОНОВАЯ АНИМАЦИЯ
+           ============================================================ */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            opacity: 0.04;
+        }
+
+        .bg-cross {
+            position: absolute;
+            font-size: 40px;
+            animation: crossFloat 8s ease-in-out infinite;
+            color: var(--primary);
+        }
+
+        .bg-cross:nth-child(1) { left: 5%; top: 10%; animation-delay: 0s; font-size: 70px; }
+        .bg-cross:nth-child(2) { left: 90%; top: 15%; animation-delay: 1.5s; font-size: 55px; }
+        .bg-cross:nth-child(3) { left: 45%; top: 85%; animation-delay: 3s; font-size: 80px; }
+        .bg-cross:nth-child(4) { left: 15%; top: 75%; animation-delay: 0.8s; font-size: 40px; }
+        .bg-cross:nth-child(5) { left: 80%; top: 60%; animation-delay: 2.2s; font-size: 50px; }
+        .bg-cross:nth-child(6) { left: 50%; top: 15%; animation-delay: 3.8s; font-size: 45px; }
+        .bg-cross:nth-child(7) { left: 10%; top: 50%; animation-delay: 0.4s; font-size: 35px; }
+        .bg-cross:nth-child(8) { left: 92%; top: 80%; animation-delay: 1.8s; font-size: 60px; }
+
+        @keyframes crossFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.3; }
+            25% { transform: translateY(-30px) rotate(45deg) scale(1.15); opacity: 0.6; }
+            50% { transform: translateY(-15px) rotate(90deg) scale(0.9); opacity: 0.4; }
+            75% { transform: translateY(-45px) rotate(135deg) scale(1.2); opacity: 0.7; }
+        }
+
+        .bg-pulse-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(26, 115, 232, 0.06);
+            animation: pulseRing 7s ease-in-out infinite;
+        }
+
+        .bg-pulse-ring:nth-child(9) { width: 600px; height: 600px; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+        .bg-pulse-ring:nth-child(10) { width: 800px; height: 800px; left: 50%; top: 50%; transform: translate(-50%, -50%); animation-delay: 2.5s; }
+
+        @keyframes pulseRing {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.7); opacity: 0.1; }
+            50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.03; }
+        }
+
+        /* ============================================================
+           FLASH БАННЕР (НОВЫЙ - медицинский)
+           ============================================================ */
+        .flash-banner-container {
+            margin: 0 0 20px 0;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(26, 115, 232, 0.25);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .flash-banner-container:active {
+            transform: scale(0.98);
+        }
+
+        .flash-banner {
+            background: linear-gradient(135deg, #0D47A1, #1A73E8, #42A5F5, #1A73E8);
+            background-size: 400% 400%;
+            animation: bannerGradient 5s ease-in-out infinite;
+            padding: 28px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            min-height: 130px;
+        }
+
+        @keyframes bannerGradient {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .flash-banner .bg-icon {
+            position: absolute;
+            font-size: 80px;
+            opacity: 0.06;
+            animation: bgIconFloat 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .flash-banner .bg-icon:nth-child(1) { right: 5%; top: -10%; animation-delay: 0s; font-size: 100px; }
+        .flash-banner .bg-icon:nth-child(2) { left: 15%; bottom: -20%; animation-delay: 3s; font-size: 120px; }
+        .flash-banner .bg-icon:nth-child(3) { right: 30%; top: 50%; animation-delay: 1.5s; font-size: 70px; }
+
+        @keyframes bgIconFloat {
+            0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.06; }
+            50% { transform: rotate(10deg) scale(1.1); opacity: 0.1; }
+        }
+
+        .flash-banner .pulse-light {
+            position: absolute;
+            width: 300%;
+            height: 300%;
+            top: -100%;
+            left: -100%;
+            background: radial-gradient(ellipse at 40% 30%, rgba(255,255,255,0.12) 0%, transparent 60%);
+            animation: pulseLight 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseLight {
+            0% { transform: translateX(-100%) rotate(0deg); opacity: 0; }
+            30% { opacity: 1; }
+            60% { opacity: 0; transform: translateX(100%) rotate(5deg); }
+            100% { transform: translateX(100%) rotate(5deg); opacity: 0; }
+        }
+
+        .flash-banner .particle {
+            position: absolute;
+            font-size: 20px;
+            animation: particleFloat 3s ease-in-out infinite;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .flash-banner .particle:nth-child(4) { left: 10%; top: 20%; animation-delay: 0s; font-size: 24px; }
+        .flash-banner .particle:nth-child(5) { left: 30%; top: 70%; animation-delay: 0.8s; font-size: 18px; }
+        .flash-banner .particle:nth-child(6) { left: 60%; top: 15%; animation-delay: 1.6s; font-size: 28px; }
+        .flash-banner .particle:nth-child(7) { left: 80%; top: 60%; animation-delay: 0.4s; font-size: 20px; }
+        .flash-banner .particle:nth-child(8) { left: 45%; top: 85%; animation-delay: 1.2s; font-size: 22px; }
+
+        @keyframes particleFloat {
+            0%, 100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0.2; }
+            50% { transform: translateY(-30px) scale(1.3) rotate(45deg); opacity: 0.5; }
+        }
+
+        .flash-banner .flash-content {
+            position: relative;
+            z-index: 2;
+            color: white;
+            flex: 1;
+        }
+
+        .flash-banner .flash-content .title {
+            font-size: 26px;
+            font-weight: 800;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.25);
+            letter-spacing: 0.5px;
+        }
+
+        .flash-banner .flash-content .title .highlight {
+            color: #FFD54F;
+            animation: highlightPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes highlightPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .flash-banner .flash-content .subtitle {
+            font-size: 15px;
+            opacity: 0.92;
+            margin-top: 4px;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.15);
+            font-weight: 300;
+        }
+
+        .flash-banner .flash-content .promo-code {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            padding: 8px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 22px;
+            letter-spacing: 5px;
+            margin-top: 10px;
+            border: 1px solid rgba(255,255,255,0.25);
+            backdrop-filter: blur(4px);
+            animation: codePulse 1.5s ease-in-out infinite;
+            font-family: 'Courier New', monospace;
+        }
+
+        @keyframes codePulse {
+            0%, 100% { transform: scale(1); background: rgba(255,255,255,0.15); }
+            50% { transform: scale(1.04); background: rgba(255,255,255,0.25); }
+        }
+
+        .flash-banner .flash-content .timer {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 13px;
+            opacity: 0.8;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 16px;
+            border-radius: 50px;
+        }
+
+        .flash-banner .flash-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+            animation: imageFloat 3s ease-in-out infinite;
+            flex-shrink: 0;
+            margin-left: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes imageFloat {
+            0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
+            50% { transform: translateY(-8px) scale(1.03); box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
+        }
+
+        .flash-banner .flash-action {
+            background: rgba(255,255,255,0.95);
+            color: var(--primary);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 32px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-family: 'Roboto', sans-serif;
+            margin-top: 10px;
+        }
+
+        .flash-banner .flash-action:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 28px rgba(0,0,0,0.25);
+            background: white;
+        }
+
+        .flash-banner .flash-action:active {
+            transform: scale(0.95);
+        }
+
+        /* ============================================================
+           НОВАЯ 3D ГАЛЕРЕЯ (медицинская, со стеклянными карточками)
+           ============================================================ */
+        .gallery-container {
+            padding: 30px 40px 50px;
+            perspective: 1600px;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: radial-gradient(ellipse at 50% 50%, rgba(26, 115, 232, 0.05) 0%, transparent 70%);
+            border-radius: var(--radius);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gallery-container::before {
+            content: '';
+            position: absolute;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(26, 115, 232, 0.06) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: glowPulse 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        }
+
+        .gallery-title {
+            font-size: 30px;
+            font-weight: 700;
+            color: #202124;
+            margin-bottom: 4px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gallery-title .heart {
+            color: var(--red);
+            animation: heartBeat 1.2s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .gallery-title .icon-med {
+            display: inline-block;
+            animation: iconSpin 10s linear infinite;
+        }
+
+        @keyframes iconSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .gallery-subtitle {
+            font-size: 15px;
+            color: var(--gray-text);
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gallery-subtitle span {
+            background: var(--primary-bg);
+            padding: 2px 16px;
+            border-radius: 50px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .carousel-3d {
+            width: 420px;
+            height: 440px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: carouselRotate 30s linear infinite;
+            cursor: grab;
+            margin: 0 auto;
+        }
+
+        .carousel-3d:active {
+            cursor: grabbing;
+            animation-play-state: paused;
+        }
+
+        @keyframes carouselRotate {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        .carousel-item {
+            position: absolute;
+            width: 240px;
+            height: 310px;
+            left: 50%;
+            top: 50%;
+            margin-left: -120px;
+            margin-top: -155px;
+            border-radius: 28px;
+            background: linear-gradient(160deg, #FFFFFF, #F8FAFE);
+            box-shadow: 0 12px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.6s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            backface-visibility: hidden;
+            border: 1px solid rgba(26, 115, 232, 0.08);
+        }
+
+        .carousel-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 60%);
+            border-radius: 28px;
+            pointer-events: none;
+        }
+
+        .carousel-item::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light), var(--primary));
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            z-index: -1;
+        }
+
+        .carousel-item:hover::after {
+            opacity: 1;
+        }
+
+        .carousel-item:hover {
+            transform: translateZ(60px) scale(1.05) rotateY(-8deg);
+            box-shadow: 0 20px 80px rgba(26, 115, 232, 0.2);
+            border-color: var(--primary);
+            z-index: 10;
+        }
+
+        .carousel-item .item-image {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+            background: var(--gray-light);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 24px rgba(26, 115, 232, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        .carousel-item:hover .item-image {
+            transform: scale(1.12) rotate(-6deg);
+            box-shadow: 0 8px 40px rgba(26, 115, 232, 0.25);
+        }
+
+        .carousel-item .item-image-glow {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(26, 115, 232, 0.15) 0%, transparent 70%);
+            animation: imageGlow 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes imageGlow {
+            0%, 100% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+        }
+
+        .carousel-item .item-name {
+            font-weight: 700;
+            font-size: 18px;
+            margin-top: 14px;
+            text-align: center;
+            color: #202124;
+            position: relative;
+            z-index: 1;
+        }
+
+        .carousel-item .item-specialty {
+            font-size: 13px;
+            color: var(--gray-text);
+            text-align: center;
+            background: var(--primary-bg);
+            padding: 4px 20px;
+            border-radius: 50px;
+            margin-top: 6px;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        .carousel-item .item-price {
+            font-weight: 800;
+            font-size: 20px;
+            color: var(--primary);
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .carousel-item .item-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 4px 16px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+
+        .carousel-item .item-badge.hot {
+            background: linear-gradient(135deg, #FF6B35, #FF3D00);
+            color: white;
+            animation: badgePulse 1.5s ease-in-out infinite;
+        }
+
+        .carousel-item .item-badge.new {
+            background: linear-gradient(135deg, #00C853, #009624);
+            color: white;
+            animation: badgePulse 1.8s ease-in-out infinite;
+        }
+
+        .carousel-item .item-badge.top {
+            background: linear-gradient(135deg, #FFD700, #FFA000);
+            color: #202124;
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .carousel-item .item-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            font-size: 15px;
+            color: var(--gold);
+            position: relative;
+            z-index: 1;
+        }
+
+        .carousel-item .item-rating .count {
+            font-size: 12px;
+            color: var(--gray-text);
+            font-weight: 400;
+        }
+
+        .carousel-item .item-experience {
+            font-size: 12px;
+            color: var(--gray-text);
+            margin-top: 4px;
+            position: relative;
+            z-index: 1;
+            background: rgba(0,0,0,0.04);
+            padding: 2px 14px;
+            border-radius: 50px;
+        }
+
+        .carousel-item .experience-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--gray-light);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .carousel-item .experience-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+            border-radius: 2px;
+            transition: width 0.8s ease;
+        }
+
+        .carousel-controls {
+            display: flex;
+            gap: 24px;
+            margin-top: 32px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .carousel-controls button {
+            width: 58px;
+            height: 58px;
+            border: none;
+            border-radius: 50%;
+            background: var(--white);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            font-size: 26px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid transparent;
+        }
+
+        .carousel-controls button:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 8px 32px rgba(26, 115, 232, 0.3);
+            border-color: var(--primary);
+        }
+
+        .carousel-controls button:active {
+            transform: scale(0.92);
+        }
+
+        .carousel-controls .indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-text);
+            min-width: 90px;
+            text-align: center;
+            background: var(--white);
+            padding: 8px 20px;
+            border-radius: 50px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .carousel-controls .indicator .current {
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .carousel-dots {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .carousel-dots .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gray-light);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .carousel-dots .dot.active {
+            background: var(--primary);
+            width: 36px;
+            border-radius: 6px;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 24px rgba(26, 115, 232, 0.2);
+        }
+
+        .carousel-dots .dot:hover {
+            transform: scale(1.3);
+        }
+
+        /* ============================================================
+           SCROLLBAR
+           ============================================================ */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .app-header {
+            background: var(--white);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .app-header .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-header .logo .icon {
+            font-size: 32px;
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .app-header .logo .dot {
+            color: var(--primary-light);
+        }
+
+        .app-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gray-text);
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-icon:hover {
+            background: rgba(26, 115, 232, 0.06);
+        }
+
+        .btn-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .btn-icon .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .btn-icon .avatar.guest {
+            background: var(--gray-light);
+            color: var(--gray-text);
+        }
+
+        .profile-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            display: none;
+            box-shadow: 0 0 8px rgba(52, 168, 83, 0.4);
+        }
+
+        .profile-indicator.active {
+            display: inline-block;
+            animation: pulseDot 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+        }
+
+        /* ============================================================
+           TOAST
+           ============================================================ */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 32px;
+            max-width: 420px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: #202124;
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+            z-index: 99999;
+            display: none;
+            animation: slideDown 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.success { background: var(--green); }
+        .toast.error { background: var(--red); }
+        .toast.warning { background: #FF9100; }
+
+        .toast.code-toast {
+            background: linear-gradient(135deg, #202124, #333);
+            padding: 24px 32px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 8px 32px rgba(26, 115, 232, 0.3);
+            text-align: center;
+        }
+
+        .toast.code-toast .code-display {
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 12px;
+            color: var(--primary);
+            background: rgba(26, 115, 232, 0.1);
+            padding: 8px 24px;
+            border-radius: 12px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================================
+           AUTH MODAL
+           ============================================================ */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-overlay.active {
+            display: flex;
+        }
+
+        .auth-modal {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 40px 48px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(0.9) translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-modal .btn-close-auth {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            padding: 4px 8px;
+            transition: transform 0.2s;
+        }
+
+        .auth-modal .btn-close-auth:hover {
+            transform: rotate(90deg);
+        }
+
+        .auth-modal .auth-logo {
+            text-align: center;
+            font-size: 56px;
+            margin-bottom: 8px;
+        }
+
+        .auth-modal h2 {
+            text-align: center;
+            font-size: 26px;
+            font-weight: 700;
+            color: #202124;
+        }
+
+        .auth-modal .subtitle {
+            text-align: center;
+            color: var(--gray-text);
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        .auth-modal .form-group {
+            margin-bottom: 16px;
+        }
+
+        .auth-modal .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #202124;
+        }
+
+        .auth-modal .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--gray-light);
+            border-radius: 10px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            background: var(--white);
+        }
+
+        .auth-modal .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .auth-modal .form-group input.error {
+            border-color: var(--red);
+        }
+
+        .auth-modal .error-text {
+            color: var(--red);
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .auth-modal .error-text.show {
+            display: block;
+        }
+
+        .auth-modal .phone-prefix {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gray-bg);
+            padding: 0 16px;
+            border-radius: 10px;
+            border: 2px solid var(--gray-light);
+            transition: border-color 0.2s;
+        }
+
+        .auth-modal .phone-prefix:focus-within {
+            border-color: var(--primary);
+        }
+
+        .auth-modal .phone-prefix span {
+            font-weight: 500;
+            font-size: 16px;
+            color: #202124;
+            white-space: nowrap;
+        }
+
+        .auth-modal .phone-prefix input {
+            border: none;
+            padding: 14px 0;
+            background: transparent;
+            flex: 1;
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+        }
+
+        .auth-modal .phone-prefix input:focus {
+            outline: none;
+        }
+
+        .auth-modal .code-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 16px 0;
+        }
+
+        .auth-modal .code-inputs input {
+            width: 56px;
+            height: 64px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            border: 2px solid var(--gray-light);
+            border-radius: 12px;
+            font-family: 'Roboto', sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        .auth-modal .code-inputs input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .auth-modal .code-inputs input.filled {
+            border-color: var(--primary);
+            background: rgba(26, 115, 232, 0.05);
+        }
+
+        .auth-modal .timer {
+            text-align: center;
+            font-size: 14px;
+            color: var(--gray-text);
+            margin: 12px 0;
+        }
+
+        .auth-modal .timer span {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .auth-modal .auth-footer {
+            text-align: center;
+            font-size: 13px;
+            color: var(--gray-text);
+            margin-top: 16px;
+        }
+
+        .auth-modal .auth-footer a {
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .auth-modal .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ============================================================
+           BUTTONS
+           ============================================================ */
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 14px 32px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 50px;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            padding: 14px 32px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-bg);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.97);
+        }
+
+        .btn-small {
+            padding: 8px 20px;
+            font-size: 13px;
+            min-height: 36px;
+            border-radius: 50px;
+            border: none;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-small:active {
+            transform: scale(0.95);
+        }
+
+        .btn-small.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-small.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-small.outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-small.outline:hover {
+            background: var(--primary-bg);
+        }
+
+        .btn-small.success {
+            background: var(--green);
+            color: white;
+        }
+
+        .btn-small.success:hover {
+            background: #2D9248;
+        }
+
+        .btn-small.danger {
+            background: var(--red);
+            color: white;
+        }
+
+        .btn-small.danger:hover {
+            background: #D33426;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT
+           ============================================================ */
+        .main-container {
+            display: flex;
+            flex: 1;
+            padding: 24px 32px;
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ============================================================
+           SIDEBAR
+           ============================================================ */
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+        }
+
+        .sidebar-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-card .title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--gray-text);
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--gray-text);
+        }
+
+        .sidebar-menu li:hover {
+            background: var(--primary-bg);
+            color: var(--primary);
+        }
+
+        .sidebar-menu li.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+        }
+
+        .sidebar-menu li .icon {
+            font-size: 20px;
+            width: 28px;
+            text-align: center;
+        }
+
+        .sidebar-menu li .badge {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 50px;
+        }
+
+        .sidebar-menu li.active .badge {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-menu li .badge.green {
+            background: var(--green);
+        }
+
+        /* ============================================================
+           CONTENT
+           ============================================================ */
+        .content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .content-page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-page.active {
+            display: block;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #202124;
+        }
+
+        .page-header .sub {
+            font-size: 14px;
+            color: var(--gray-text);
+            font-weight: 400;
+        }
+
+        /* ============================================================
+           SEARCH & FILTERS
+           ============================================================ */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar .search-input {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            background: var(--white);
+            border-radius: 10px;
+            padding: 0 16px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar .search-input:focus-within {
+            border-color: var(--primary);
+        }
+
+        .search-bar .search-input svg {
+            width: 20px;
+            height: 20px;
+            color: var(--gray-text);
+            flex-shrink: 0;
+        }
+
+        .search-bar .search-input input {
+            border: none;
+            padding: 12px 12px;
+            flex: 1;
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            background: transparent;
+            outline: none;
+        }
+
+        .search-bar .search-input input::placeholder {
+            color: var(--gray-text);
+        }
+
+        .search-bar .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-bar .filter-group select {
+            padding: 10px 16px;
+            border: 2px solid var(--gray-light);
+            border-radius: 10px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            background: var(--white);
+            cursor: pointer;
+            transition: border-color 0.2s;
+            min-width: 130px;
+        }
+
+        .search-bar .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .filter-tab {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 50px;
+            background: var(--white);
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--gray-text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .filter-tab:hover {
+            background: var(--primary-bg);
+        }
+
+        .filter-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+        }
+
+        .filter-tab .icon {
+            margin-right: 4px;
+        }
+
+        .filters-expand {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .filters-expand.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .filters-expand .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .filters-expand .filter-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-text);
+            margin-bottom: 4px;
+        }
+
+        .filters-expand .filter-group select,
+        .filters-expand .filter-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--gray-light);
+            border-radius: 10px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            background: var(--white);
+            transition: border-color 0.2s;
+        }
+
+        .filters-expand .filter-group select:focus,
+        .filters-expand .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .filters-expand .checkbox-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding-top: 4px;
+        }
+
+        .filters-expand .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 400;
+            color: #202124;
+            cursor: pointer;
+        }
+
+        .filters-expand .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .filter-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 6px 12px;
+            background: none;
+            border: none;
+            font-family: 'Roboto', sans-serif;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .filter-toggle:hover {
+            background: var(--primary-bg);
+        }
+
+        .filter-toggle svg {
+            transition: transform 0.3s;
+        }
+
+        .filter-toggle.active svg {
+            transform: rotate(180deg);
+        }
+
+        /* ============================================================
+           DOCTOR CARDS
+           ============================================================ */
+        .doctors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .doctor-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .doctor-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-4px);
+            border-color: var(--primary-light);
+        }
+
+        .doctor-card .top {
+            display: flex;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .doctor-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+            flex-shrink: 0;
+            background: var(--primary-bg);
+        }
+
+        .doctor-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .doctor-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #202124;
+        }
+
+        .doctor-specialty {
+            font-size: 14px;
+            color: var(--gray-text);
+            margin-top: 2px;
+        }
+
+        .doctor-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .doctor-rating .stars {
+            color: var(--gold);
+            font-size: 14px;
+        }
+
+        .doctor-rating .value {
+            font-weight: 700;
+            font-size: 14px;
+            color: #202124;
+        }
+
+        .doctor-rating .reviews {
+            font-size: 13px;
+            color: var(--gray-text);
+        }
+
+        .doctor-meta {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .doctor-meta .tag {
+            font-size: 12px;
+            padding: 3px 12px;
+            border-radius: 50px;
+            background: var(--primary-bg);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .doctor-meta .tag.green {
+            background: rgba(52, 168, 83, 0.1);
+            color: var(--green);
+        }
+
+        .doctor-meta .tag.orange {
+            background: rgba(251, 188, 4, 0.15);
+            color: #E37400;
+        }
+
+        .doctor-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 8px;
+        }
+
+        .doctor-card .bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--gray-border);
+        }
+
+        .doctor-card .bottom .description {
+            font-size: 13px;
+            color: var(--gray-text);
+            flex: 1;
+            margin-right: 12px;
+            line-height: 1.4;
+        }
+
+        /* ============================================================
+           BOOKING CART
+           ============================================================ */
+        .booking-cart {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            border: 2px solid var(--primary-light);
+        }
+
+        .booking-cart .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .booking-cart .header .title {
+            font-weight: 700;
+            font-size: 17px;
+            color: #202124;
+        }
+
+        .booking-cart .header .count {
+            background: var(--primary);
+            color: white;
+            padding: 2px 12px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .booking-cart-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .booking-cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--gray-bg);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .booking-cart-item .info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .booking-cart-item .info .name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .booking-cart-item .info .details {
+            font-size: 12px;
+            color: var(--gray-text);
+        }
+
+        .booking-cart-item .remove-btn {
+            background: none;
+            border: none;
+            color: var(--red);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .booking-cart-item .remove-btn:hover {
+            background: rgba(234, 67, 53, 0.1);
+        }
+
+        .booking-cart .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           BOOKING STEPS
+           ============================================================ */
+        .booking-container {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: var(--shadow);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            position: relative;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 40px;
+            right: 40px;
+            height: 3px;
+            background: var(--gray-light);
+            z-index: 0;
+        }
+
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            z-index: 1;
+        }
+
+        .step-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--gray-light);
+            color: var(--gray-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.3s;
+            border: 3px solid var(--gray-light);
+        }
+
+        .step-item.active .step-circle {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(26, 115, 232, 0.3);
+        }
+
+        .step-item.completed .step-circle {
+            background: var(--green);
+            color: white;
+            border-color: var(--green);
+        }
+
+        .step-label {
+            font-size: 13px;
+            color: var(--gray-text);
+            font-weight: 500;
+        }
+
+        .step-item.active .step-label {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .step-item.completed .step-label {
+            color: var(--green);
+        }
+
+        .step-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .step-content h3 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .step-content .sub {
+            color: var(--gray-text);
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+        .booking-doctor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .booking-doctor-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid var(--gray-border);
+        }
+
+        .booking-doctor-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .booking-doctor-card.selected {
+            border-color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        .booking-doctor-card .doctor-avatar {
+            width: 56px;
+            height: 56px;
+        }
+
+        .booking-doctor-card .doctor-info .doctor-name {
+            font-size: 16px;
+        }
+
+        .booking-doctor-card .doctor-info .doctor-specialty {
+            font-size: 13px;
+        }
+
+        .booking-doctor-card .doctor-price {
+            font-size: 15px;
+            margin-top: 4px;
+        }
+
+        .booking-doctor-card .check {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .booking-doctor-card.selected .check {
+            display: flex;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .time-slot {
+            padding: 12px 8px;
+            border: 2px solid var(--gray-light);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            font-size: 14px;
+            background: var(--white);
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .time-slot:hover:not(.booked) {
+            border-color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        .time-slot.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .time-slot.booked {
+            opacity: 0.4;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        .date-picker {
+            display: flex;
+            gap: 10px;
+            padding: 4px 0 16px;
+            flex-wrap: wrap;
+        }
+
+        .date-item {
+            padding: 12px 20px;
+            border: 2px solid var(--gray-light);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--white);
+            font-family: 'Roboto', sans-serif;
+            min-width: 70px;
+        }
+
+        .date-item:hover {
+            border-color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        .date-item.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .date-item .day {
+            font-size: 12px;
+            color: var(--gray-text);
+            font-weight: 400;
+        }
+
+        .date-item.active .day {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .date-item .number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #202124;
+        }
+
+        .date-item.active .number {
+            color: white;
+        }
+
+        /* ============================================================
+           CONFIRMATION
+           ============================================================ */
+        .confirmation-card {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .confirmation-card .icon {
+            font-size: 72px;
+            margin-bottom: 12px;
+        }
+
+        .confirmation-card h3 {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .confirmation-card .details {
+            max-width: 480px;
+            margin: 20px auto;
+            text-align: left;
+            background: var(--gray-bg);
+            padding: 20px 24px;
+            border-radius: 12px;
+        }
+
+        .confirmation-card .details .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 15px;
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        .confirmation-card .details .row:last-child {
+            border-bottom: none;
+        }
+
+        .confirmation-card .details .row .label {
+            color: var(--gray-text);
+        }
+
+        .confirmation-card .details .row .value {
+            font-weight: 600;
+        }
+
+        .confirmation-card .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        /* ============================================================
+           APPOINTMENTS
+           ============================================================ */
+        .appointments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .appointment-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+        }
+
+        .appointment-card .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .appointment-card .doctor {
+            font-weight: 700;
+            font-size: 17px;
+        }
+
+        .appointment-card .specialty {
+            font-size: 14px;
+            color: var(--gray-text);
+        }
+
+        .appointment-card .status {
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .appointment-card .status.confirmed {
+            background: rgba(52, 168, 83, 0.1);
+            color: var(--green);
+        }
+
+        .appointment-card .status.pending {
+            background: rgba(251, 188, 4, 0.15);
+            color: #E37400;
+        }
+
+        .appointment-card .status.cancelled {
+            background: rgba(234, 67, 53, 0.1);
+            color: var(--red);
+        }
+
+        .appointment-card .details {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--gray-text);
+        }
+
+        .appointment-card .details span {
+            display: block;
+            margin: 3px 0;
+        }
+
+        .appointment-card .actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           PROFILE SUB PAGES
+           ============================================================ */
+        .profile-sub-page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .profile-sub-page.active {
+            display: block;
+        }
+
+        .profile-sub-page .sub-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .profile-sub-page .sub-header .back-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .profile-sub-page .sub-header .back-btn:hover {
+            background: var(--primary-bg);
+        }
+
+        .profile-sub-page .sub-header h3 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* ============================================================
+           PROFILE
+           ============================================================ */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 24px;
+        }
+
+        .profile-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--shadow);
+        }
+
+        .profile-card .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            font-weight: 700;
+            margin: 0 auto 16px;
+            box-shadow: 0 4px 20px rgba(26, 115, 232, 0.3);
+        }
+
+        .profile-card .name {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .profile-card .phone {
+            text-align: center;
+            color: var(--gray-text);
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+        .profile-progress {
+            margin: 16px 0;
+        }
+
+        .profile-progress .label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-text);
+            margin-bottom: 6px;
+        }
+
+        .profile-progress .bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-light);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .profile-progress .bar .fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .profile-stat {
+            background: var(--gray-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .profile-stat .number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .profile-stat .label {
+            font-size: 12px;
+            color: var(--gray-text);
+            font-weight: 500;
+        }
+
+        .profile-menu {
+            margin-top: 16px;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--gray-border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .profile-menu-item:hover {
+            padding-left: 8px;
+            color: var(--primary);
+        }
+
+        .profile-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .profile-menu-item .icon {
+            font-size: 22px;
+            width: 36px;
+            text-align: center;
+        }
+
+        .profile-menu-item .text {
+            flex: 1;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .profile-menu-item .arrow {
+            color: #ccc;
+            font-size: 18px;
+        }
+
+        .profile-menu-item .badge {
+            background: var(--primary);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 12px;
+            border-radius: 50px;
+        }
+
+        .profile-menu-item.danger .text {
+            color: var(--red);
+        }
+
+        .profile-menu-item.danger:hover .text {
+            color: var(--red);
+        }
+
+        /* ============================================================
+           CHAT BOT
+           ============================================================ */
+        .chat-bot-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9998;
+        }
+
+        .chat-bot-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(26, 115, 232, 0.4);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .chat-bot-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 28px rgba(26, 115, 232, 0.5);
+        }
+
+        .chat-bot-toggle .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--red);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-bot-window {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            width: 380px;
+            max-width: calc(100vw - 48px);
+            height: 500px;
+            max-height: calc(100vh - 140px);
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+
+        .chat-bot-window.active {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .chat-bot-header {
+            padding: 16px 20px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .chat-bot-header .title {
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-bot-header .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .chat-bot-header .close-btn:hover {
+            opacity: 1;
+        }
+
+        .chat-bot-messages {
+            flex: 1;
+            padding: 16px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--gray-bg);
+        }
+
+        .chat-message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chat-message.bot {
+            background: var(--white);
+            color: #202124;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--shadow);
+        }
+
+        .chat-message.bot .emoji {
+            font-size: 18px;
+            margin-right: 4px;
+        }
+
+        .chat-message.user {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message .time {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .chat-message.bot .time {
+            color: var(--gray-text);
+        }
+
+        .chat-message.user .time {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .chat-bot-input {
+            padding: 12px 16px;
+            border-top: 1px solid var(--gray-border);
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            background: var(--white);
+        }
+
+        .chat-bot-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid var(--gray-light);
+            border-radius: 50px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-bot-input input:focus {
+            border-color: var(--primary);
+        }
+
+        .chat-bot-input button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .chat-bot-input button:hover {
+            background: var(--primary-dark);
+        }
+
+        .chat-bot-input button:active {
+            transform: scale(0.95);
+        }
+
+        .chat-bot-typing {
+            display: none;
+            padding: 8px 16px;
+            gap: 4px;
+            align-items: center;
+            align-self: flex-start;
+        }
+
+        .chat-bot-typing.active {
+            display: flex;
+        }
+
+        .chat-bot-typing span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gray-text);
+            animation: typingDot 1.2s ease-in-out infinite;
+        }
+
+        .chat-bot-typing span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .chat-bot-typing span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
+        }
+
+        /* ============================================================
+           EMPTY STATE
+           ============================================================ */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-text);
+        }
+
+        .empty-state .icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            color: #202124;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+            margin: 4px 0 16px;
+        }
+
+        /* ============================================================
+           UTILITY
+           ============================================================ */
+        .mt-12 { margin-top: 12px; }
+        .mt-16 { margin-top: 16px; }
+        .mt-24 { margin-top: 24px; }
+        .mb-12 { margin-bottom: 12px; }
+        .mb-16 { margin-bottom: 16px; }
+        .w-full { width: 100%; }
+        .text-center { text-align: center; }
+        .flex { display: flex; }
+        .gap-8 { gap: 8px; }
+        .gap-12 { gap: 12px; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .flex-wrap { flex-wrap: wrap; }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 1024px) {
+            .main-container {
+                padding: 20px;
+            }
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+            .chat-bot-window {
+                width: 340px;
+                height: 450px;
+            }
+            .gallery-container {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-container {
+                padding: 16px;
+                flex-direction: column;
+            }
+
+            .app-header {
+                padding: 12px 16px;
+                flex-wrap: wrap;
+            }
+
+            .app-header .logo {
+                font-size: 22px;
+            }
+
+            .app-header .header-right .btn-icon span {
+                display: none;
+            }
+
+            .flash-banner {
+                padding: 16px 20px;
+                flex-wrap: wrap;
+                min-height: auto;
+            }
+
+            .flash-banner .flash-content .title {
+                font-size: 20px;
+            }
+
+            .flash-banner .flash-content .promo-code {
+                font-size: 16px;
+                letter-spacing: 2px;
+                padding: 4px 16px;
+            }
+
+            .flash-banner .flash-image {
+                width: 60px;
+                height: 60px;
+            }
+
+            .flash-banner .flash-action {
+                padding: 8px 20px;
+                font-size: 13px;
+            }
+
+            .gallery-container {
+                padding: 16px;
+                min-height: 400px;
+            }
+
+            .gallery-title {
+                font-size: 24px;
+            }
+
+            .carousel-3d {
+                width: 300px;
+                height: 320px;
+            }
+
+            .carousel-item {
+                width: 180px;
+                height: 240px;
+                margin-left: -90px;
+                margin-top: -120px;
+                padding: 16px;
+                border-radius: 20px;
+            }
+
+            .carousel-item .item-image {
+                width: 90px;
+                height: 90px;
+            }
+
+            .carousel-item .item-name {
+                font-size: 15px;
+                margin-top: 10px;
+            }
+
+            .carousel-item .item-price {
+                font-size: 17px;
+            }
+
+            .carousel-controls button {
+                width: 46px;
+                height: 46px;
+                font-size: 20px;
+            }
+
+            .carousel-controls .indicator {
+                font-size: 14px;
+                min-width: 70px;
+                padding: 6px 14px;
+            }
+
+            .gallery-container::before {
+                width: 400px;
+                height: 400px;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .search-bar .search-input {
+                min-width: auto;
+            }
+
+            .search-bar .filter-group {
+                flex-wrap: wrap;
+            }
+
+            .search-bar .filter-group select {
+                flex: 1;
+                min-width: 100px;
+            }
+
+            .doctors-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .appointments-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-doctor-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-container {
+                padding: 20px;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            }
+
+            .filters-expand .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .confirmation-card .actions {
+                flex-direction: column;
+            }
+
+            .confirmation-card .actions .btn-primary,
+            .confirmation-card .actions .btn-secondary {
+                width: 100%;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: start;
+            }
+
+            .auth-modal {
+                padding: 32px 24px;
+                margin: 16px;
+            }
+
+            .auth-modal .code-inputs input {
+                width: 48px;
+                height: 56px;
+                font-size: 24px;
+            }
+
+            .toast {
+                right: 16px;
+                left: 16px;
+                max-width: none;
+                top: 70px;
+            }
+
+            .toast.code-toast .code-display {
+                font-size: 32px;
+                letter-spacing: 8px;
+            }
+
+            .chat-bot-window {
+                width: calc(100vw - 32px);
+                height: 70vh;
+                right: 16px;
+                bottom: 80px;
+            }
+
+            .chat-bot-container {
+                bottom: 80px;
+                right: 16px;
+            }
+
+            .bg-cross {
+                font-size: 25px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .filter-tabs {
+                gap: 6px;
+            }
+            .filter-tab {
+                padding: 6px 14px;
+                font-size: 12px;
+            }
+            .flash-banner .flash-content .title {
+                font-size: 17px;
+            }
+            .flash-banner .flash-content .promo-code {
+                font-size: 14px;
+                letter-spacing: 1px;
+            }
+            .carousel-3d {
+                width: 240px;
+                height: 260px;
+            }
+            .carousel-item {
+                width: 150px;
+                height: 200px;
+                margin-left: -75px;
+                margin-top: -100px;
+                padding: 12px;
+                border-radius: 16px;
+            }
+            .carousel-item .item-image {
+                width: 70px;
+                height: 70px;
+                border-width: 3px;
+            }
+            .carousel-item .item-name {
+                font-size: 13px;
+                margin-top: 8px;
+            }
+            .carousel-item .item-specialty {
+                font-size: 11px;
+                padding: 2px 12px;
+            }
+            .carousel-item .item-price {
+                font-size: 15px;
+            }
+            .carousel-item .item-badge {
+                font-size: 9px;
+                padding: 2px 10px;
+                top: 10px;
+                right: 10px;
+            }
+            .carousel-item .item-rating {
+                font-size: 12px;
+            }
+            .carousel-item .item-experience {
+                font-size: 10px;
+            }
+            .carousel-controls {
+                gap: 12px;
+                margin-top: 20px;
+            }
+            .carousel-controls button {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            .carousel-controls .indicator {
+                font-size: 12px;
+                min-width: 60px;
+                padding: 4px 10px;
+            }
+            .carousel-dots {
+                gap: 8px;
+                margin-top: 14px;
+            }
+            .carousel-dots .dot {
+                width: 8px;
+                height: 8px;
+            }
+            .carousel-dots .dot.active {
+                width: 24px;
+            }
+            .gallery-title {
+                font-size: 20px;
+            }
+            .gallery-subtitle {
+                font-size: 13px;
+                margin-bottom: 16px;
+            }
+            .gallery-container::before {
+                width: 300px;
+                height: 300px;
+            }
+            .profile-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================ -->
+    <!-- ФОНОВАЯ АНИМАЦИЯ -->
+    <!-- ============================================================ -->
+    <div class="bg-animation">
+        <div class="bg-cross">✚</div>
+        <div class="bg-cross">✚</div>
+        <div class="bg-cross">✚</div>
+        <div class="bg-cross">✚</div>
+        <div class="bg-cross">✚</div>
+        <div class="bg-cross">✚</div>
+        <div class="bg-cross">✚</div>
+        <div class="bg-cross">✚</div>
+        <div class="bg-pulse-ring"></div>
+        <div class="bg-pulse-ring"></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TOAST -->
+    <!-- ============================================================ -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ============================================================ -->
+    <!-- CHAT BOT -->
+    <!-- ============================================================ -->
+    <div class="chat-bot-container">
+        <button class="chat-bot-toggle" onclick="toggleChat()">
+            💬
+            <span class="badge" id="chatBadge" style="display:none;">1</span>
+        </button>
+
+        <div class="chat-bot-window" id="chatWindow">
+            <div class="chat-bot-header">
+                <div class="title">💬 Поддержка DocTime</div>
+                <button class="close-btn" onclick="toggleChat()">✕</button>
+            </div>
+            <div class="chat-bot-messages" id="chatMessages">
+                <div class="chat-message bot">
+                    👋 Здравствуйте! Я виртуальный помощник DocTime.<br>Задайте мне вопрос!
+                    <span class="time">только что</span>
+                </div>
+            </div>
+            <div class="chat-bot-typing" id="chatTyping"><span></span><span></span><span></span></div>
+            <div class="chat-bot-input">
+                <input type="text" id="chatInput" placeholder="Введите вопрос..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- AUTH MODAL -->
+    <!-- ============================================================ -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal" id="authModal">
+            <button class="btn-close-auth" onclick="closeAuth()">✕</button>
+            <div id="authStep1">
+                <div class="auth-logo">🏥</div>
+                <h2>Вход в DocTime</h2>
+                <p class="subtitle">Введите номер телефона для входа</p>
+                <div class="form-group">
+                    <label>📱 Номер телефона</label>
+                    <div class="phone-prefix">
+                        <span>+7</span>
+                        <input type="tel" id="phoneInput" placeholder="999 123-45-67" maxlength="10" inputmode="numeric">
+                    </div>
+                    <div class="error-text" id="phoneError">Введите корректный номер</div>
+                </div>
+                <button class="btn-primary w-full" id="sendCodeBtn" onclick="sendCode()">Получить код</button>
+                <div class="auth-footer">Продолжая, вы принимаете условия <a>пользовательского соглашения</a></div>
+            </div>
+            <div id="authStep2" style="display:none;">
+                <div class="auth-logo">🔐</div>
+                <h2>Подтверждение</h2>
+                <p class="subtitle">Введите код из SMS</p>
+                <div class="code-inputs" id="codeInputs">
+                    <input type="text" maxlength="1" class="code-input">
+                    <input type="text" maxlength="1" class="code-input">
+                    <input type="text" maxlength="1" class="code-input">
+                    <input type="text" maxlength="1" class="code-input">
+                </div>
+                <div class="error-text text-center" id="codeError" style="display:none;">Неверный код</div>
+                <div class="timer" id="timerDisplay">Повторно запросить код через <span id="timerSeconds">30</span> сек</div>
+                <button class="btn-primary w-full" id="verifyBtn" onclick="verifyCode()" disabled>Войти</button>
+                <button class="btn-secondary w-full mt-12" onclick="goBackToPhone()" style="font-size:14px;padding:12px;">← Изменить номер</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- HEADER -->
+    <!-- ============================================================ -->
+    <header class="app-header">
+        <div class="logo"><span class="icon">🏥</span> Doc<span class="dot">.</span>Time</div>
+        <div class="header-right">
+            <button class="btn-icon" onclick="showToast('📋 Уведомления')">
+                <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                <span>Уведомления</span>
+            </button>
+            <button class="btn-icon" id="authHeaderBtn" onclick="handleAuthAction()">
+                <div class="avatar guest" id="headerAvatar">👤</div>
+                <span id="headerName">Войти</span>
+                <div class="profile-indicator" id="headerIndicator"></div>
+            </button>
+        </div>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- MAIN CONTAINER -->
+    <!-- ============================================================ -->
+    <div class="main-container">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-card">
+                <div class="title">Меню</div>
+                <ul class="sidebar-menu">
+                    <li class="active" data-page="search" onclick="navigateTo('search')"><span class="icon">🔍</span> Поиск врачей</li>
+                    <li data-page="gallery" onclick="navigateTo('gallery')"><span class="icon">🎨</span> 3D Галерея</li>
+                    <li data-page="appointments" onclick="navigateTo('appointments')"><span class="icon">📋</span> Мои записи <span class="badge" id="sidebarBadge">0</span></li>
+                    <li data-page="booking" onclick="navigateTo('booking')"><span class="icon">📝</span> Новая запись <span class="badge green" id="cartBadge" style="display:none;">0</span></li>
+                    <li data-page="profile" onclick="navigateTo('profile')"><span class="icon">👤</span> Профиль</li>
+                    <li onclick="toggleChat()"><span class="icon">💬</span> Поддержка</li>
+                </ul>
+            </div>
+            <div class="sidebar-card" style="background:linear-gradient(135deg, var(--primary), var(--primary-dark));color:white;border:none;">
+                <div style="text-align:center;padding:8px 0;">
+                    <div style="font-size:14px;opacity:0.8;">⭐ Бонусы</div>
+                    <div style="font-size:36px;font-weight:700;" id="sidebarBonuses">0</div>
+                    <div style="font-size:12px;opacity:0.8;">бонусных баллов</div>
+                </div>
+            </div>
+            <div class="sidebar-card">
+                <div class="title">Быстрый доступ</div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                    <button class="btn-small primary w-full" onclick="navigateTo('booking')">📝 Записаться</button>
+                    <button class="btn-small outline w-full" onclick="navigateTo('appointments')">📋 Мои записи</button>
+                    <button class="btn-small outline w-full" onclick="navigateTo('gallery')">🎨 3D Галерея</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENT -->
+        <main class="content">
+
+            <!-- PAGE: ПОИСК -->
+            <div class="content-page active" id="page-search">
+                
+                <!-- НОВЫЙ FLASH БАННЕР -->
+                <div class="flash-banner-container" onclick="showToast('⚡ Запишитесь к врачу со скидкой 20%!')">
+                    <div class="flash-banner">
+                        <div class="pulse-light"></div>
+                        <div class="bg-icon">⚕️</div>
+                        <div class="bg-icon">💊</div>
+                        <div class="bg-icon">🩺</div>
+                        <div class="particle">✚</div>
+                        <div class="particle">✚</div>
+                        <div class="particle">✚</div>
+                        <div class="particle">✚</div>
+                        <div class="particle">✚</div>
+
+                        <div class="flash-content">
+                            <div class="title">🩺 <span class="highlight">День здоровья</span> в DocTime!</div>
+                            <div class="subtitle">Скидка 20% на первичный прием к любому врачу</div>
+                            <div class="promo-code">HEALTH20</div>
+                            <div class="timer">⏱ Акция действует: 24.06 - 30.06</div>
+                            <button class="flash-action" onclick="event.stopPropagation();navigateTo('gallery')">🎨 Выбрать врача</button>
+                        </div>
+
+                        <img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=200&h=200&fit=crop&crop=center" alt="Доктор" class="flash-image" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=Doc&background=1A73E8&color=fff&size=90'">
+                    </div>
+                </div>
+
+                <div class="page-header">
+                    <div>
+                        <h2>🔍 Поиск врачей</h2>
+                        <div class="sub">Найдите подходящего специалиста</div>
+                    </div>
+                    <div>
+                        <span style="font-size:14px;color:var(--gray-text);">Найдено: <strong id="doctorCount">0</strong> врачей</span>
+                        <button class="btn-small primary" onclick="navigateTo('booking')" style="margin-left:12px;">
+                            🛒 Корзина <span id="headerCartCount" style="background:rgba(255,255,255,0.2);padding:0 8px;border-radius:50px;">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="search-bar">
+                    <div class="search-input">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="searchInput" placeholder="Поиск по имени или специальности..." oninput="filterDoctors()">
+                    </div>
+                    <div class="filter-group">
+                        <select id="metroFilter" onchange="filterDoctors()">
+                            <option value="all">🚇 Все метро</option>
+                            <option value="красная">🔴 Красная</option>
+                            <option value="синяя">🔵 Синяя</option>
+                            <option value="зеленая">🟢 Зеленая</option>
+                        </select>
+                        <select id="priceFilter" onchange="filterDoctors()">
+                            <option value="all">💰 Любая цена</option>
+                            <option value="low">До 1500 ₽</option>
+                            <option value="mid">1500 - 3000 ₽</option>
+                            <option value="high">От 3000 ₽</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="filter-tabs" id="filterTabs">
+                    <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">Все</button>
+                    <button class="filter-tab" data-filter="терапевт" onclick="setFilter('терапевт')">🩺 Терапевт</button>
+                    <button class="filter-tab" data-filter="кардиолог" onclick="setFilter('кардиолог')">❤️ Кардиолог</button>
+                    <button class="filter-tab" data-filter="невролог" onclick="setFilter('невролог')">🧠 Невролог</button>
+                    <button class="filter-tab" data-filter="педиатр" onclick="setFilter('педиатр')">👶 Педиатр</button>
+                    <button class="filter-tab" data-filter="офтальмолог" onclick="setFilter('офтальмолог')">👁 Офтальмолог</button>
+                    <button class="filter-tab" data-filter="хирург" onclick="setFilter('хирург')">🔬 Хирург</button>
+                    <button class="filter-tab" data-filter="гинеколог" onclick="setFilter('гинеколог')">👩‍⚕️ Гинеколог</button>
+                </div>
+
+                <div>
+                    <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        Расширенный фильтр
+                    </button>
+                </div>
+
+                <div class="filters-expand" id="filtersExpand">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Опыт работы</label>
+                            <select id="experienceFilter" onchange="filterDoctors()">
+                                <option value="all">Любой</option>
+                                <option value="5">От 5 лет</option>
+                                <option value="10">От 10 лет</option>
+                                <option value="15">От 15 лет</option>
+                                <option value="20">От 20 лет</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Рейтинг</label>
+                            <select id="ratingFilter" onchange="filterDoctors()">
+                                <option value="all">Любой</option>
+                                <option value="4">От 4.0 ★</option>
+                                <option value="4.5">От 4.5 ★</option>
+                                <option value="4.8">От 4.8 ★</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Дополнительно</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" id="onlineCheck" onchange="filterDoctors()"> 💻 Онлайн-консультация</label>
+                                <label><input type="checkbox" id="homeCheck" onchange="filterDoctors()"> 🏠 Выезд на дом</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doctors Grid -->
+                <div class="doctors-grid" id="doctorsList"></div>
+            </div>
+
+            <!-- PAGE: 3D ГАЛЕРЕЯ (НОВАЯ) -->
+            <div class="content-page" id="page-gallery">
+                <div class="page-header">
+                    <div>
+                        <h2>🎨 3D Галерея <span class="heart">❤️</span></h2>
+                        <div class="sub">Вращайте карусель и выбирайте специалиста</div>
+                    </div>
+                    <button class="btn-primary" onclick="navigateTo('search')">🔍 Найти врача</button>
+                </div>
+
+                <div class="gallery-container">
+                    <div class="carousel-3d" id="carousel3d"></div>
+
+                    <div class="carousel-controls">
+                        <button onclick="rotateCarousel(-1)">‹</button>
+                        <span class="indicator">
+                            <span class="current" id="carouselCurrent">1</span>
+                            <span style="color:var(--gray-text);">/</span>
+                            <span id="carouselTotal">8</span>
+                        </span>
+                        <button onclick="rotateCarousel(1)">›</button>
+                    </div>
+
+                    <div class="carousel-dots" id="carouselDots"></div>
+                </div>
+            </div>
+
+            <!-- PAGE: ЗАПИСЬ -->
+            <div class="content-page" id="page-booking">
+                <div class="page-header">
+                    <div>
+                        <h2>📝 Корзина записей</h2>
+                        <div class="sub">Добавьте врачей в корзину</div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn-small outline" onclick="clearBookingCart()">🗑 Очистить</button>
+                        <button class="btn-primary" id="confirmAllBtn" onclick="confirmAllBookings()" disabled>
+                            ✅ Подтвердить (<span id="confirmAllCount">0</span>)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="booking-cart" id="bookingCart">
+                    <div class="header">
+                        <div class="title">🛒 Корзина</div>
+                        <div class="count" id="cartTotalCount">0 записей</div>
+                    </div>
+                    <div class="booking-cart-items" id="bookingCartItems">
+                        <div class="empty-state" style="padding:20px;">
+                            <div style="font-size:32px;">📋</div>
+                            <p style="font-size:14px;">Корзина пуста</p>
+                            <button class="btn-small primary mt-12" onclick="navigateTo('search')">🔍 Найти врачей</button>
+                        </div>
+                    </div>
+                    <div class="actions" id="cartActions" style="display:none;">
+                        <button class="btn-small outline" onclick="clearBookingCart()">🗑 Очистить</button>
+                        <button class="btn-small primary" onclick="confirmAllBookings()">✅ Подтвердить</button>
+                    </div>
+                </div>
+
+                <div class="booking-container" style="margin-top:16px;">
+                    <div class="page-header" style="margin-bottom:12px;">
+                        <h3 style="font-size:18px;">➕ Добавить врача</h3>
+                    </div>
+
+                    <div class="progress-steps" id="progressSteps">
+                        <div class="step-item active" data-step="1"><div class="step-circle">1</div><span class="step-label">Врач</span></div>
+                        <div class="step-item" data-step="2"><div class="step-circle">2</div><span class="step-label">Время</span></div>
+                        <div class="step-item" data-step="3"><div class="step-circle">3</div><span class="step-label">Готово</span></div>
+                    </div>
+
+                    <div class="step-content active" id="step1">
+                        <h3>Выберите врача</h3>
+                        <p class="sub">Нажмите на карточку</p>
+                        <div class="booking-doctor-grid" id="bookingDoctorsList"></div>
+                        <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;">
+                            <button class="btn-primary" id="bookingStep1Btn" onclick="goToStep2()" disabled>Выбрать →</button>
+                            <button class="btn-secondary" onclick="navigateTo('search')">← Назад</button>
+                        </div>
+                    </div>
+
+                    <div class="step-content" id="step2">
+                        <h3>Выберите дату и время</h3>
+                        <p class="sub" id="selectedDoctorName">Врач: </p>
+                        <div id="selectedDoctorCard"></div>
+                        <label style="font-weight:500;font-size:15px;display:block;margin:16px 0 8px;">📅 Дата</label>
+                        <div class="date-picker" id="datePicker"></div>
+                        <label style="font-weight:500;font-size:15px;display:block;margin:12px 0 8px;">🕐 Время</label>
+                        <div class="time-slots" id="timeSlots"></div>
+                        <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+                            <button class="btn-success" style="background:var(--green);color:white;border:none;border-radius:50px;padding:14px 32px;font-weight:700;font-size:16px;cursor:pointer;transition:all 0.2s;" id="addToCartBtn" onclick="addToCart()" disabled>➕ Добавить</button>
+                            <button class="btn-secondary" onclick="goToStep1()">← Назад</button>
+                        </div>
+                    </div>
+
+                    <div class="step-content" id="step3">
+                        <div class="confirmation-card">
+                            <div class="icon">✅</div>
+                            <h3>Добавлено!</h3>
+                            <p style="color:var(--gray-text);margin-top:4px;">Врач добавлен в корзину</p>
+                            <div class="details">
+                                <div class="row"><span class="label">👨‍⚕️ Врач</span><span class="value" id="confirmDoctor">—</span></div>
+                                <div class="row"><span class="label">📋 Специальность</span><span class="value" id="confirmSpecialty">—</span></div>
+                                <div class="row"><span class="label">📅 Дата и время</span><span class="value" id="confirmDateTime">—</span></div>
+                                <div class="row"><span class="label">💰 Стоимость</span><span class="value" id="confirmPrice">—</span></div>
+                            </div>
+                            <div class="actions">
+                                <button class="btn-primary" onclick="goToStep1()">➕ Добавить еще</button>
+                                <button class="btn-secondary" onclick="navigateTo('booking')">🛒 В корзину</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: МОИ ЗАПИСИ -->
+            <div class="content-page" id="page-appointments">
+                <div class="page-header">
+                    <div><h2>📋 Мои записи</h2><div class="sub">Все ваши записи</div></div>
+                    <button class="btn-primary" onclick="navigateTo('booking')">📝 Новая запись</button>
+                </div>
+                <div class="appointments-grid" id="appointmentsList"></div>
+            </div>
+
+            <!-- PAGE: ПРОФИЛЬ -->
+            <div class="content-page" id="page-profile">
+                <div class="page-header">
+                    <div><h2>👤 Профиль</h2><div class="sub">Управление данными</div></div>
+                </div>
+
+                <div class="profile-grid">
+                    <div>
+                        <div class="profile-card">
+                            <div class="avatar" id="profileAvatar">👤</div>
+                            <div class="name" id="profileName">Гость</div>
+                            <div class="phone" id="profilePhone">Не авторизован</div>
+                            <div class="profile-progress">
+                                <div class="label"><span>Заполнение профиля</span><span id="progressPercent">0%</span></div>
+                                <div class="bar"><div class="fill" id="progressFill" style="width:0%;"></div></div>
+                            </div>
+                            <div class="profile-stats">
+                                <div class="profile-stat"><div class="number" id="statAppointments">0</div><div class="label">Записей</div></div>
+                                <div class="profile-stat"><div class="number" id="statCompleted">0</div><div class="label">Посещений</div></div>
+                                <div class="profile-stat"><div class="number" id="statBonuses">0</div><div class="label">Бонусов</div></div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+                                <button class="btn-small primary" onclick="editProfile()">✏️ Редактировать</button>
+                                <button class="btn-small outline" onclick="navigateTo('notifications')">🔔 Уведомления</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="profile-card">
+                            <div style="font-weight:700;font-size:18px;margin-bottom:12px;">Настройки</div>
+                            <div class="profile-menu">
+                                <div class="profile-menu-item" onclick="navigateTo('appointments')"><span class="icon">📋</span><span class="text">Мои записи</span><span class="badge" id="profileBadge">0</span><span class="arrow">›</span></div>
+                                <div class="profile-menu-item" onclick="navigateTo('history')"><span class="icon">📊</span><span class="text">История посещений</span><span class="arrow">›</span></div>
+                                <div class="profile-menu-item" onclick="navigateTo('notifications')"><span class="icon">🔔</span><span class="text">Уведомления</span><span class="arrow">›</span></div>
+                                <div class="profile-menu-item" onclick="navigateTo('payments')"><span class="icon">💳</span><span class="text">Способы оплаты</span><span class="arrow">›</span></div>
+                                <div class="profile-menu-item" onclick="navigateTo('insurance')"><span class="icon">🛡</span><span class="text">Страховая информация</span><span class="arrow">›</span></div>
+                                <div class="profile-menu-item" onclick="navigateTo('favorites')"><span class="icon">❤️</span><span class="text">Избранные врачи</span><span class="arrow">›</span></div>
+                                <div class="profile-menu-item" onclick="navigateTo('records')"><span class="icon">📄</span><span class="text">Медицинские записи</span><span class="arrow">›</span></div>
+                                <div class="profile-menu-item danger" id="authActionBtn" onclick="handleAuthAction()"><span class="icon">🔑</span><span class="text" id="authActionText">Войти</span><span class="arrow">›</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB PAGES -->
+                <div class="profile-sub-page" id="sub-history"><div class="sub-header"><button class="back-btn" onclick="navigateTo('profile')">‹</button><h3>📊 История посещений</h3></div><div id="historyList"></div></div>
+                <div class="profile-sub-page" id="sub-notifications"><div class="sub-header"><button class="back-btn" onclick="navigateTo('profile')">‹</button><h3>🔔 Уведомления</h3></div><div id="notificationsList"></div></div>
+                <div class="profile-sub-page" id="sub-payments"><div class="sub-header"><button class="back-btn" onclick="navigateTo('profile')">‹</button><h3>💳 Способы оплаты</h3></div><button class="btn-small primary mb-12" onclick="addPaymentMethod()">➕ Добавить карту</button><div id="paymentsList"></div></div>
+                <div class="profile-sub-page" id="sub-insurance"><div class="sub-header"><button class="back-btn" onclick="navigateTo('profile')">‹</button><h3>🛡 Страховая информация</h3></div><div id="insuranceInfo"></div></div>
+                <div class="profile-sub-page" id="sub-favorites"><div class="sub-header"><button class="back-btn" onclick="navigateTo('profile')">‹</button><h3>❤️ Избранные врачи</h3></div><div id="favoritesList"></div></div>
+                <div class="profile-sub-page" id="sub-records"><div class="sub-header"><button class="back-btn" onclick="navigateTo('profile')">‹</button><h3>📄 Медицинские записи</h3></div><div id="recordsList"></div></div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================================ -->
+    <script>
+        // =============================================================
+        // 1. DATA - ВРАЧИ
+        // =============================================================
+        const doctorsData = [{
+            id: 1,
+            name: 'Александр Петров',
+            specialty: 'Терапевт',
+            rating: 4.9,
+            reviews: 127,
+            price: 1800,
+            experience: 15,
+            metro: 'красная',
+            online: true,
+            home: false,
+            image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop&crop=center',
+            description: 'Врач высшей категории. Стаж 15 лет.'
+        }, {
+            id: 2,
+            name: 'Елена Смирнова',
+            specialty: 'Кардиолог',
+            rating: 4.8,
+            reviews: 98,
+            price: 2200,
+            experience: 12,
+            metro: 'синяя',
+            online: true,
+            home: false,
+            image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop&crop=center',
+            description: 'Кандидат медицинских наук.'
+        }, {
+            id: 3,
+            name: 'Михаил Иванов',
+            specialty: 'Невролог',
+            rating: 4.7,
+            reviews: 85,
+            price: 2500,
+            experience: 10,
+            metro: 'зеленая',
+            online: false,
+            home: true,
+            image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop&crop=center',
+            description: 'Врач-невролог. Лечение головных болей.'
+        }, {
+            id: 4,
+            name: 'Ольга Козлова',
+            specialty: 'Педиатр',
+            rating: 4.9,
+            reviews: 156,
+            price: 1600,
+            experience: 18,
+            metro: 'красная',
+            online: true,
+            home: true,
+            image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop&crop=center',
+            description: 'Детский врач с 18-летним стажем.'
+        }, {
+            id: 5,
+            name: 'Дмитрий Соколов',
+            specialty: 'Офтальмолог',
+            rating: 4.6,
+            reviews: 72,
+            price: 2000,
+            experience: 8,
+            metro: 'синяя',
+            online: false,
+            home: false,
+            image: 'https://images.unsplash.com/photo-1622902046580-2b47f47f5471?w=200&h=200&fit=crop&crop=center',
+            description: 'Врач-офтальмолог.'
+        }, {
+            id: 6,
+            name: 'Наталья Морозова',
+            specialty: 'Терапевт',
+            rating: 4.8,
+            reviews: 110,
+            price: 1700,
+            experience: 14,
+            metro: 'зеленая',
+            online: true,
+            home: false,
+            image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=200&h=200&fit=crop&crop=center',
+            description: 'Терапевт, диетолог.'
+        }, {
+            id: 7,
+            name: 'Сергей Волков',
+            specialty: 'Кардиолог',
+            rating: 4.9,
+            reviews: 143,
+            price: 2800,
+            experience: 20,
+            metro: 'красная',
+            online: false,
+            home: false,
+            image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&h=200&fit=crop&crop=center',
+            description: 'Профессор, доктор медицинских наук.'
+        }, {
+            id: 8,
+            name: 'Анна Федорова',
+            specialty: 'Гинеколог',
+            rating: 4.8,
+            reviews: 134,
+            price: 2100,
+            experience: 16,
+            metro: 'синяя',
+            online: true,
+            home: false,
+            image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop&crop=center',
+            description: 'Врач-гинеколог.'
+        }];
+
+        // =============================================================
+        // 2. BOOKING CART
+        // =============================================================
+        let bookingCart = [];
+
+        function addToBookingCart(doctor, date, time) {
+            const exists = bookingCart.some(item => item.doctorId === doctor.id && item.date === date && item.time === time);
+            if (exists) { showToast('⚠️ Уже добавлено', 'warning'); return false; }
+            bookingCart.push({ doctorId: doctor.id, doctorName: doctor.name, specialty: doctor.specialty, date: date,
+                time: time, price: doctor.price, doctor: doctor });
+            updateCartUI();
+            showToast(`✅ ${doctor.name} добавлен`, 'success');
+            return true;
+        }
+
+        function removeFromCart(index) {
+            const item = bookingCart[index];
+            bookingCart.splice(index, 1);
+            updateCartUI();
+            showToast(`❌ ${item.doctorName} удален`, 'info');
+        }
+
+        function clearBookingCart() {
+            if (bookingCart.length === 0) return;
+            if (!confirm('Очистить корзину?')) return;
+            bookingCart = [];
+            updateCartUI();
+            showToast('Корзина очищена', 'info');
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('bookingCartItems');
+            const countEl = document.getElementById('cartTotalCount');
+            const cartBadge = document.getElementById('cartBadge');
+            const headerCartCount = document.getElementById('headerCartCount');
+            const confirmAllBtn = document.getElementById('confirmAllBtn');
+            const confirmAllCount = document.getElementById('confirmAllCount');
+            const cartActions = document.getElementById('cartActions');
+
+            countEl.textContent = bookingCart.length + ' записей';
+
+            if (bookingCart.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state" style="padding:20px;"><div style="font-size:32px;">📋</div><p style="font-size:14px;">Корзина пуста</p><button class="btn-small primary mt-12" onclick="navigateTo('search')">🔍 Найти врачей</button></div>`;
+                cartActions.style.display = 'none';
+                cartBadge.style.display = 'none';
+                if (headerCartCount) headerCartCount.textContent = '0';
+                if (confirmAllBtn) confirmAllBtn.disabled = true;
+                if (confirmAllCount) confirmAllCount.textContent = '0';
+                return;
+            }
+
+            cartActions.style.display = 'flex';
+            cartBadge.style.display = 'inline';
+            cartBadge.textContent = bookingCart.length;
+            if (headerCartCount) headerCartCount.textContent = bookingCart.length;
+            if (confirmAllBtn) confirmAllBtn.disabled = false;
+            if (confirmAllCount) confirmAllCount.textContent = bookingCart.length;
+
+            container.innerHTML = bookingCart.map((item, index) => `
+                    <div class="booking-cart-item">
+                        <div class="info"><div class="name">${item.doctorName}</div><div class="details">${item.specialty} • ${item.date} в ${item.time} • ${item.price} ₽</div></div>
+                        <button class="remove-btn" onclick="removeFromCart(${index})">✕</button>
+                    </div>
+                `).join('');
+        }
+
+        function confirmAllBookings() {
+            if (!isAuthenticated()) { showToast('⚠️ Войдите в аккаунт', 'warning');
+                openAuth(); return; }
+            if (bookingCart.length === 0) { showToast('Корзина пуста', 'warning'); return; }
+            if (!confirm(`Подтвердить ${bookingCart.length} записей?`)) return;
+
+            let successCount = 0;
+            bookingCart.forEach(item => {
+                const appointment = { id: Date.now() + Math.random() * 1000, doctorId: item.doctorId,
+                    doctorName: item.doctorName, specialty: item.specialty, date: item.date, time: item.time,
+                    price: item.price, status: 'confirmed', createdAt: new Date().toLocaleString('ru-RU') };
+                if (!authUser.appointments) authUser.appointments = [];
+                authUser.appointments.push(appointment);
+                successCount++;
+            });
+
+            authUser.bonuses = (authUser.bonuses || 0) + successCount * 50;
+            saveUser(authUser);
+            localStorage.setItem('doctime_user_data_' + authUser.phone.replace(/\D/g, ''), JSON.stringify(authUser));
+
+            bookingCart = [];
+            updateCartUI();
+            updateAppointments();
+            updateProfileUI();
+            updateSidebar();
+            showToast(`✅ ${successCount} записей подтверждены!`, 'success');
+            navigateTo('appointments');
+        }
+
+        // =============================================================
+        // 3. AUTH SYSTEM
+        // =============================================================
+        const AUTH_KEY = 'doctime_user';
+        let authUser = JSON.parse(localStorage.getItem(AUTH_KEY)) || null;
+        let authStep = 1;
+        let timerInterval = null;
+        let timerSeconds = 30;
+        let generatedCode = '';
+
+        function isAuthenticated() { return authUser !== null; }
+
+        function saveUser(user) {
+            authUser = user;
+            localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+            updateAuthUI();
+            updateProfileUI();
+            updateAppointments();
+            updateSidebar();
+        }
+
+        function logoutUser() {
+            authUser = null;
+            localStorage.removeItem(AUTH_KEY);
+            updateAuthUI();
+            updateProfileUI();
+            updateAppointments();
+            updateSidebar();
+            showToast('Вы вышли из аккаунта', 'info');
+            navigateTo('search');
+        }
+
+        function updateAuthUI() {
+            const indicator = document.getElementById('headerIndicator');
+            const avatar = document.getElementById('headerAvatar');
+            const name = document.getElementById('headerName');
+            const authText = document.getElementById('authActionText');
+            const authBtn = document.getElementById('authActionBtn');
+
+            if (isAuthenticated()) {
+                if (indicator) indicator.classList.add('active');
+                if (avatar) { avatar.textContent = authUser.name.charAt(0).toUpperCase();
+                    avatar.className = 'avatar'; }
+                if (name) name.textContent = authUser.name;
+                if (authText) authText.textContent = 'Выйти';
+                if (authBtn) authBtn.className = 'profile-menu-item danger';
+            } else {
+                if (indicator) indicator.classList.remove('active');
+                if (avatar) { avatar.textContent = '👤';
+                    avatar.className = 'avatar guest'; }
+                if (name) name.textContent = 'Войти';
+                if (authText) authText.textContent = 'Войти';
+                if (authBtn) authBtn.className = 'profile-menu-item';
+            }
+        }
+
+        function updateProfileUI() {
+            if (isAuthenticated()) {
+                document.getElementById('profileName').textContent = authUser.name || 'Пользователь';
+                document.getElementById('profilePhone').textContent = authUser.phone;
+                document.getElementById('profileAvatar').textContent = authUser.name ? authUser.name.charAt(0)
+                    .toUpperCase() : '👤';
+                const progress = Math.min(100, (authUser.appointments?.length || 0) * 20 + 20);
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressPercent').textContent = progress + '%';
+                document.getElementById('statAppointments').textContent = authUser.appointments?.length || 0;
+                document.getElementById('statCompleted').textContent = authUser.completed || 0;
+                document.getElementById('statBonuses').textContent = authUser.bonuses || 0;
+                document.getElementById('profileBadge').textContent = authUser.appointments?.length || 0;
+            } else {
+                document.getElementById('profileName').textContent = 'Гость';
+                document.getElementById('profilePhone').textContent = 'Не авторизован';
+                document.getElementById('profileAvatar').textContent = '👤';
+                document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('progressPercent').textContent = '0%';
+                document.getElementById('statAppointments').textContent = '0';
+                document.getElementById('statCompleted').textContent = '0';
+                document.getElementById('statBonuses').textContent = '0';
+                document.getElementById('profileBadge').textContent = '0';
+            }
+        }
+
+        function updateSidebar() {
+            const badge = document.getElementById('sidebarBadge');
+            const bonuses = document.getElementById('sidebarBonuses');
+            if (isAuthenticated()) {
+                badge.textContent = authUser.appointments?.length || 0;
+                bonuses.textContent = authUser.bonuses || 0;
+            } else {
+                badge.textContent = '0';
+                bonuses.textContent = '0';
+            }
+        }
+
+        // =============================================================
+        // 4. AUTH MODAL
+        // =============================================================
+        function openAuth() {
+            document.getElementById('authOverlay').classList.add('active');
+            document.getElementById('authStep1').style.display = 'block';
+            document.getElementById('authStep2').style.display = 'none';
+            document.getElementById('phoneInput').value = '';
+            document.getElementById('phoneError').classList.remove('show');
+            document.getElementById('codeError').style.display = 'none';
+            document.getElementById('sendCodeBtn').disabled = false;
+            document.getElementById('sendCodeBtn').textContent = 'Получить код';
+            authStep = 1;
+            setTimeout(() => document.getElementById('phoneInput').focus(), 300);
+        }
+
+        function closeAuth() {
+            document.getElementById('authOverlay').classList.remove('active');
+            if (timerInterval) { clearInterval(timerInterval);
+                timerInterval = null; }
+        }
+
+        function goBackToPhone() {
+            document.getElementById('authStep1').style.display = 'block';
+            document.getElementById('authStep2').style.display = 'none';
+            authStep = 1;
+            if (timerInterval) { clearInterval(timerInterval);
+                timerInterval = null; }
+        }
+
+        // =============================================================
+        // 5. PHONE VALIDATION
+        // =============================================================
+        function validatePhone(phone) {
+            const digits = phone.replace(/\D/g, '');
+            if (digits.length === 10) {
+                const codes = ['900', '901', '902', '903', '904', '905', '906', '908', '909',
+                    '910', '911', '912', '913', '914', '915', '916', '917', '918', '919',
+                    '920', '921', '922', '923', '924', '925', '926', '927', '928', '929',
+                    '930', '931', '932', '933', '934', '935', '936', '937', '938', '939',
+                    '950', '951', '952', '953', '954', '955', '956', '957', '958', '959',
+                    '960', '961', '962', '963', '964', '965', '966', '967', '968', '969',
+                    '970', '971', '972', '973', '974', '975', '976', '977', '978', '979',
+                    '980', '981', '982', '983', '984', '985', '986', '987', '988', '989',
+                    '990', '991', '992', '993', '994', '995', '996', '997', '998', '999'
+                ];
+                return codes.includes(digits.substring(0, 3));
+            }
+            return false;
+        }
+
+        function formatPhone(phone) {
+            const digits = phone.replace(/\D/g, '');
+            if (digits.length === 10) {
+                return '+7 ' + digits.substring(0, 3) + ' ' + digits.substring(3, 6) + '-' + digits.substring(6, 8) + '-' +
+                    digits.substring(8, 10);
+            }
+            return '+7' + digits;
+        }
+
+        // =============================================================
+        // 6. SEND CODE
+        // =============================================================
+        function sendCode() {
+            const input = document.getElementById('phoneInput');
+            const phone = input.value.trim();
+            const errorEl = document.getElementById('phoneError');
+
+            if (!validatePhone(phone)) {
+                errorEl.classList.add('show');
+                input.classList.add('error');
+                input.focus();
+                return;
+            }
+
+            errorEl.classList.remove('show');
+            input.classList.remove('error');
+
+            generatedCode = String(Math.floor(1000 + Math.random() * 9000));
+            showCodePopup(generatedCode);
+
+            document.getElementById('authStep1').style.display = 'none';
+            document.getElementById('authStep2').style.display = 'block';
+            authStep = 2;
+
+            document.querySelectorAll('.code-input').forEach(el => el.value = '');
+            document.querySelector('.code-input').focus();
+
+            timerSeconds = 30;
+            document.getElementById('timerSeconds').textContent = timerSeconds;
+            document.getElementById('verifyBtn').disabled = true;
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                document.getElementById('timerSeconds').textContent = timerSeconds;
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    document.getElementById('timerDisplay').innerHTML =
+                        'Код не пришел? <a style="color:#1A73E8;font-weight:700;cursor:pointer;" onclick="resendCode()">Отправить повторно</a>';
+                }
+            }, 1000);
+
+            showToast('📱 Код отправлен', 'success');
+        }
+
+        function showCodePopup(code) {
+            const toast = document.getElementById('toast');
+            clearTimeout(toast._timeout);
+            toast.innerHTML =
+                `<div style="text-align:center;"><div style="font-size:14px;opacity:0.8;">🔑 Ваш код</div><div class="code-display">${code}</div><div style="font-size:12px;opacity:0.6;">⏱ 30 сек</div></div>`;
+            toast.className = 'toast code-toast';
+            toast.style.display = 'block';
+            toast._timeout = setTimeout(() => { toast.style.display = 'none';
+                toast.className = 'toast'; }, 8000);
+            try {
+                const audio = new Audio(
+                    'data:audio/wav;base64,UklGRlAAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAABJREVDAAAAACMjIwAAAAAhISEhAA=='
+                    );
+                audio.volume = 0.3;
+                audio.play().catch(() => {});
+            } catch (e) {}
+        }
+
+        function resendCode() {
+            const phone = document.getElementById('phoneInput').value.trim();
+            generatedCode = String(Math.floor(1000 + Math.random() * 9000));
+            showCodePopup(generatedCode);
+            timerSeconds = 30;
+            document.getElementById('timerSeconds').textContent = timerSeconds;
+            document.getElementById('timerDisplay').innerHTML =
+                'Повторно запросить код через <span id="timerSeconds">30</span> сек';
+            document.getElementById('verifyBtn').disabled = true;
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                document.getElementById('timerSeconds').textContent = timerSeconds;
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    document.getElementById('timerDisplay').innerHTML =
+                        'Код не пришел? <a style="color:#1A73E8;font-weight:700;cursor:pointer;" onclick="resendCode()">Отправить повторно</a>';
+                }
+            }, 1000);
+            showToast('📱 Новый код отправлен', 'success');
+        }
+
+        function verifyCode() {
+            const inputs = document.querySelectorAll('.code-input');
+            const code = Array.from(inputs).map(el => el.value).join('');
+            const errorEl = document.getElementById('codeError');
+
+            if (code.length !== 4) {
+                errorEl.style.display = 'block';
+                errorEl.textContent = 'Введите все 4 цифры';
+                return;
+            }
+
+            if (code !== generatedCode) {
+                errorEl.style.display = 'block';
+                errorEl.textContent = '❌ Неверный код';
+                inputs.forEach(el => { el.value = '';
+                    el.classList.remove('filled'); });
+                inputs[0].focus();
+                return;
+            }
+
+            errorEl.style.display = 'none';
+
+            const phone = document.getElementById('phoneInput').value.trim();
+            const formattedPhone = formatPhone(phone);
+            const name = 'Пациент ' + phone.replace(/\D/g, '').slice(-4);
+
+            const savedUser = JSON.parse(localStorage.getItem('doctime_user_data_' + phone.replace(/\D/g, '')));
+
+            const user = {
+                phone: formattedPhone,
+                name: savedUser ? savedUser.name : name,
+                appointments: savedUser ? savedUser.appointments || [] : [],
+                completed: savedUser ? savedUser.completed || 0 : 0,
+                bonuses: savedUser ? savedUser.bonuses || Math.floor(Math.random() * 200) + 50 : Math.floor(Math.random() *
+                    200) + 50
+            };
+
+            saveUser(user);
+            localStorage.setItem('doctime_user_data_' + phone.replace(/\D/g, ''), JSON.stringify(user));
+
+            closeAuth();
+            showToast('✅ Добро пожаловать, ' + user.name + '!', 'success');
+            updateProfileUI();
+            updateSidebar();
+            navigateTo('profile');
+        }
+
+        // =============================================================
+        // 7. CODE INPUTS
+        // =============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.code-input').forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    this.value = this.value.replace(/\D/g, '').slice(0, 1);
+                    if (this.value.length === 1) { this.classList.add('filled'); if (index < 3) document
+                            .querySelectorAll('.code-input')[index + 1].focus(); } else { this.classList
+                            .remove('filled'); }
+                    const allFilled = Array.from(document.querySelectorAll('.code-input')).every(el => el.value
+                        .length === 1);
+                    document.getElementById('verifyBtn').disabled = !allFilled;
+                    document.getElementById('codeError').style.display = 'none';
+                });
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                        document.querySelectorAll('.code-input')[index - 1].focus();
+                        document.querySelectorAll('.code-input')[index - 1].value = '';
+                        document.querySelectorAll('.code-input')[index - 1].classList.remove('filled');
+                        document.getElementById('verifyBtn').disabled = true;
+                    }
+                    if (e.key === 'Enter') {
+                        const allFilled = Array.from(document.querySelectorAll('.code-input')).every(el => el
+                            .value.length === 1);
+                        if (allFilled) verifyCode();
+                    }
+                });
+            });
+
+            document.getElementById('phoneInput').addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                if (this.value.length > 10) this.value = this.value.slice(0, 10);
+                if (this.value.length === 10) {
+                    document.getElementById('phoneError').classList.remove('show');
+                    this.classList.remove('error');
+                }
+            });
+
+            renderDoctors();
+            updateAuthUI();
+            updateProfileUI();
+            updateAppointments();
+            updateSidebar();
+            renderBookingDoctors();
+            updateProgress(1);
+            updateCartUI();
+            renderHistory();
+            renderNotifications();
+            renderPayments();
+            renderInsurance();
+            renderFavorites();
+            renderRecords();
+            initGallery();
+        });
+
+        // =============================================================
+        // 8. NAVIGATION
+        // =============================================================
+        let currentPage = 'search';
+        let currentFilter = 'all';
+        let selectedDoctor = null;
+        let selectedDate = null;
+        let selectedTime = null;
+        let bookingStep = 1;
+
+        function navigateTo(page) {
+            document.querySelectorAll('.content-page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.profile-sub-page').forEach(p => p.classList.remove('active'));
+
+            const target = document.getElementById('page-' + page);
+            if (target) target.classList.add('active');
+
+            document.querySelectorAll('.sidebar-menu li').forEach(el => {
+                el.classList.toggle('active', el.dataset.page === page);
+            });
+
+            const subPages = ['history', 'notifications', 'payments', 'insurance', 'favorites', 'records'];
+            if (subPages.includes(page)) {
+                const subTarget = document.getElementById('sub-' + page);
+                if (subTarget) subTarget.classList.add('active');
+                const profilePage = document.getElementById('page-profile');
+                if (profilePage) profilePage.classList.add('active');
+                if (page === 'history') renderHistory();
+                else if (page === 'notifications') renderNotifications();
+                else if (page === 'payments') renderPayments();
+                else if (page === 'insurance') renderInsurance();
+                else if (page === 'favorites') renderFavorites();
+                else if (page === 'records') renderRecords();
+            }
+
+            if (page === 'search') renderDoctors();
+            else if (page === 'booking') { renderBookingDoctors();
+                updateProgress(bookingStep);
+                updateCartUI(); } else if (page === 'appointments') updateAppointments();
+            else if (page === 'profile') { updateProfileUI();
+                updateAuthUI(); } else if (page === 'gallery') initGallery();
+
+            currentPage = page;
+        }
+
+        function handleAuthAction() {
+            if (isAuthenticated()) {
+                if (confirm('Вы уверены, что хотите выйти?')) logoutUser();
+            } else { openAuth(); }
+        }
+
+        function editProfile() {
+            if (!isAuthenticated()) { showToast('Войдите в аккаунт', 'warning');
+                openAuth(); return; }
+            const newName = prompt('Введите ваше имя:', authUser.name);
+            if (newName && newName.trim()) {
+                authUser.name = newName.trim();
+                saveUser(authUser);
+                localStorage.setItem('doctime_user_data_' + authUser.phone.replace(/\D/g, ''), JSON.stringify(authUser));
+                showToast('✅ Имя обновлено', 'success');
+                updateProfileUI();
+                updateAuthUI();
+            }
+        }
+
+        // =============================================================
+        // 9. RENDER DOCTORS
+        // =============================================================
+        function renderDoctors() {
+            const container = document.getElementById('doctorsList');
+            if (!container) return;
+
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+            let filtered = doctorsData;
+
+            if (searchQuery) filtered = filtered.filter(d => d.name.toLowerCase().includes(searchQuery) || d.specialty
+                .toLowerCase().includes(searchQuery));
+            if (currentFilter !== 'all') filtered = filtered.filter(d => d.specialty === currentFilter);
+
+            const metro = document.getElementById('metroFilter').value;
+            if (metro !== 'all') filtered = filtered.filter(d => d.metro === metro);
+
+            const price = document.getElementById('priceFilter').value;
+            if (price === 'low') filtered = filtered.filter(d => d.price <= 1500);
+            else if (price === 'mid') filtered = filtered.filter(d => d.price > 1500 && d.price <= 3000);
+            else if (price === 'high') filtered = filtered.filter(d => d.price > 3000);
+
+            const exp = document.getElementById('experienceFilter').value;
+            if (exp !== 'all') filtered = filtered.filter(d => d.experience >= parseInt(exp));
+
+            const rating = document.getElementById('ratingFilter').value;
+            if (rating !== 'all') filtered = filtered.filter(d => d.rating >= parseFloat(rating));
+
+            if (document.getElementById('onlineCheck').checked) filtered = filtered.filter(d => d.online);
+            if (document.getElementById('homeCheck').checked) filtered = filtered.filter(d => d.home);
+
+            document.getElementById('doctorCount').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">🔍</div><h3>Врачи не найдены</h3><p>Попробуйте изменить параметры</p><button class="btn-primary" onclick="resetFilters()">Сбросить</button></div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map((doctor) => `
+                    <div class="doctor-card">
+                        <div class="top">
+                            <img src="${doctor.image}" alt="${doctor.name}" class="doctor-avatar" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name)}&background=1A73E8&color=fff&size=72'">
+                            <div class="doctor-info">
+                                <div class="doctor-name">${doctor.name}</div>
+                                <div class="doctor-specialty">${doctor.specialty}</div>
+                                <div class="doctor-rating"><span class="stars">${'★'.repeat(Math.floor(doctor.rating))}${doctor.rating % 1 >= 0.5 ? '★' : '☆'}</span><span class="value">${doctor.rating}</span><span class="reviews">(${doctor.reviews})</span></div>
+                                <div class="doctor-meta"><span class="tag">${doctor.experience} лет</span>${doctor.online ? '<span class="tag green">💻 Онлайн</span>' : ''}${doctor.home ? '<span class="tag green">🏠 Выезд</span>' : ''}<span class="tag">🚇 ${doctor.metro === 'красная' ? '🔴' : doctor.metro === 'синяя' ? '🔵' : '🟢'}</span></div>
+                                <div class="doctor-price">${doctor.price} ₽</div>
+                            </div>
+                        </div>
+                        <div class="bottom">
+                            <div class="description">${doctor.description}</div>
+                            <button class="btn-small primary" onclick="event.stopPropagation();startBooking(${doctor.id})">➕ В корзину</button>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        function filterDoctors() { renderDoctors(); }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(el => el.classList.toggle('active', el.dataset.filter ===
+            filter));
+            renderDoctors();
+        }
+
+        function toggleFilters() {
+            document.getElementById('filtersExpand').classList.toggle('active');
+            document.getElementById('filterToggle').classList.toggle('active');
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('metroFilter').value = 'all';
+            document.getElementById('priceFilter').value = 'all';
+            document.getElementById('experienceFilter').value = 'all';
+            document.getElementById('ratingFilter').value = 'all';
+            document.getElementById('onlineCheck').checked = false;
+            document.getElementById('homeCheck').checked = false;
+            setFilter('all');
+        }
+
+        // =============================================================
+        // 10. BOOKING
+        // =============================================================
+        function startBooking(doctorId) {
+            if (!isAuthenticated()) { showToast('⚠️ Войдите в аккаунт', 'warning');
+                openAuth(); return; }
+            const doctor = doctorsData.find(d => d.id === doctorId);
+            if (!doctor) return;
+            selectedDoctor = doctor;
+            selectedDate = null;
+            selectedTime = null;
+            bookingStep = 1;
+            navigateTo('booking');
+            renderBookingDoctors();
+            updateProgress(1);
+            document.getElementById('bookingStep1Btn').disabled = true;
+            document.querySelector('.booking-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderBookingDoctors() {
+            const container = document.getElementById('bookingDoctorsList');
+            if (!container) return;
+            container.innerHTML = doctorsData.map(doctor => `
+                    <div class="booking-doctor-card ${selectedDoctor && selectedDoctor.id === doctor.id ? 'selected' : ''}" onclick="selectBookingDoctor(${doctor.id})">
+                        <img src="${doctor.image}" alt="${doctor.name}" class="doctor-avatar" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name)}&background=1A73E8&color=fff&size=56'">
+                        <div class="doctor-info"><div class="doctor-name">${doctor.name}</div><div class="doctor-specialty">${doctor.specialty}</div><div class="doctor-price">${doctor.price} ₽</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;"><span class="tag">${doctor.experience} лет</span>${doctor.online ? '<span class="tag green">💻 Онлайн</span>' : ''}</div></div>
+                        <div class="check">✅</div>
+                    </div>
+                `).join('');
+        }
+
+        function selectBookingDoctor(id) {
+            const doctor = doctorsData.find(d => d.id === id);
+            if (!doctor) return;
+            selectedDoctor = doctor;
+            renderBookingDoctors();
+            document.getElementById('bookingStep1Btn').disabled = false;
+        }
+
+        function goToStep1() {
+            bookingStep = 1;
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('step1').classList.add('active');
+            updateProgress(1);
+        }
+
+        function goToStep2() {
+            if (!selectedDoctor) { showToast('Выберите врача', 'warning'); return; }
+            bookingStep = 2;
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('step2').classList.add('active');
+            updateProgress(2);
+            document.getElementById('selectedDoctorName').textContent = 'Врач: ' + selectedDoctor.name;
+            const card = document.getElementById('selectedDoctorCard');
+            card.innerHTML = `
+                    <div class="booking-doctor-card selected" style="cursor:default;max-width:400px;">
+                        <img src="${selectedDoctor.image}" alt="${selectedDoctor.name}" class="doctor-avatar" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(selectedDoctor.name)}&background=1A73E8&color=fff&size=56'">
+                        <div class="doctor-info"><div class="doctor-name">${selectedDoctor.name}</div><div class="doctor-specialty">${selectedDoctor.specialty} • ${selectedDoctor.price} ₽</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;"><span class="tag">${selectedDoctor.experience} лет</span>${selectedDoctor.online ? '<span class="tag green">💻 Онлайн</span>' : ''}</div></div>
+                    </div>
+                `;
+            renderDates();
+            renderTimeSlots();
+        }
+
+        function renderDates() {
+            const container = document.getElementById('datePicker');
+            container.innerHTML = '';
+            const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+            const today = new Date();
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() + i + 1);
+                const day = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
+                const number = date.getDate();
+                const div = document.createElement('div');
+                div.className = 'date-item' + (i === 0 ? ' active' : '');
+                div.dataset.date = `${number}.${date.getMonth()+1}.${date.getFullYear()}`;
+                div.innerHTML = `<div class="day">${day}</div><div class="number">${number}</div>`;
+                div.addEventListener('click', function() {
+                    document.querySelectorAll('.date-item').forEach(el => el.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedDate = this.dataset.date;
+                    document.getElementById('addToCartBtn').disabled = !selectedDate || !selectedTime;
+                    renderTimeSlots();
+                });
+                container.appendChild(div);
+            }
+            const firstDate = container.querySelector('.date-item');
+            if (firstDate) { selectedDate = firstDate.dataset.date;
+                document.getElementById('addToCartBtn').disabled = !selectedDate || !selectedTime; }
+        }
+
+        function renderTimeSlots() {
+            const container = document.getElementById('timeSlots');
+            container.innerHTML = '';
+            const times = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00',
+                '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'
+            ];
+            const bookedSlots = [];
+            const bookedCount = Math.floor(Math.random() * 4) + 2;
+            for (let i = 0; i < bookedCount; i++) { const idx = Math.floor(Math.random() * times.length); if (!bookedSlots
+                    .includes(idx) && idx > 0) bookedSlots.push(idx); }
+            times.forEach((time, index) => {
+                const isBooked = bookedSlots.includes(index);
+                const div = document.createElement('button');
+                div.className = 'time-slot' + (isBooked ? ' booked' : '');
+                div.textContent = time;
+                if (!isBooked) {
+                    div.addEventListener('click', function() {
+                        document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('active'));
+                        this.classList.add('active');
+                        selectedTime = this.textContent;
+                        document.getElementById('addToCartBtn').disabled = !selectedDate || !selectedTime;
+                    });
+                }
+                container.appendChild(div);
+            });
+            selectedTime = null;
+            document.getElementById('addToCartBtn').disabled = true;
+        }
+
+        function addToCart() {
+            if (!selectedDoctor || !selectedDate || !selectedTime) { showToast('Выберите врача, дату и время', 'warning');
+                return; }
+            const success = addToBookingCart(selectedDoctor, selectedDate, selectedTime);
+            if (success) {
+                bookingStep = 3;
+                document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+                document.getElementById('step3').classList.add('active');
+                updateProgress(3);
+                document.getElementById('confirmDoctor').textContent = selectedDoctor.name;
+                document.getElementById('confirmSpecialty').textContent = selectedDoctor.specialty;
+                document.getElementById('confirmDateTime').textContent = selectedDate + ' в ' + selectedTime;
+                document.getElementById('confirmPrice').textContent = selectedDoctor.price + ' ₽';
+                updateCartUI();
+            }
+        }
+
+        function updateProgress(step) {
+            document.querySelectorAll('.step-item').forEach((el, index) => {
+                const num = index + 1;
+                el.classList.remove('active', 'completed');
+                if (num === step) el.classList.add('active');
+                else if (num < step) el.classList.add('completed');
+            });
+        }
+
+        // =============================================================
+        // 11. APPOINTMENTS
+        // =============================================================
+        function updateAppointments() {
+            const container = document.getElementById('appointmentsList');
+            if (!container) return;
+            const appointments = isAuthenticated() ? (authUser.appointments || []) : [];
+            if (appointments.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">📋</div><h3>Нет записей</h3><p>Запишитесь к врачу</p><button class="btn-primary" onclick="navigateTo('booking')">Записаться</button></div>`;
+                return;
+            }
+            container.innerHTML = appointments.slice().reverse().map(app => `
+                    <div class="appointment-card">
+                        <div class="header"><div><div class="doctor">${app.doctorName}</div><div class="specialty">${app.specialty}</div></div><span class="status ${app.status}">${app.status === 'confirmed' ? '✅ Подтверждена' : app.status === 'pending' ? '⏳ Ожидает' : '❌ Отменена'}</span></div>
+                        <div class="details"><span>📅 ${app.date} в ${app.time}</span><span>💰 ${app.price} ₽</span><span>🆔 #${app.id}</span></div>
+                        ${app.status === 'confirmed' ? `<div class="actions"><button class="btn-small danger" onclick="cancelAppointment(${app.id})">Отменить</button><button class="btn-small outline" onclick="showToast('Информация', 'info')">Подробнее</button></div>` : ''}
+                    </div>
+                `).join('');
+        }
+
+        function cancelAppointment(id) {
+            if (!confirm('Отменить запись?')) return;
+            if (authUser.appointments) {
+                authUser.appointments = authUser.appointments.filter(a => a.id !== id);
+                saveUser(authUser);
+                localStorage.setItem('doctime_user_data_' + authUser.phone.replace(/\D/g, ''), JSON.stringify(authUser));
+                updateAppointments();
+                updateProfileUI();
+                updateSidebar();
+                showToast('Запись отменена', 'info');
+            }
+        }
+
+        // =============================================================
+        // 12. PROFILE SUB PAGES
+        // =============================================================
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            if (!container) return;
+            const history = [
+                { doctor: 'Александр Петров', specialty: 'Терапевт', date: '15.06.2026', time: '10:00',
+                status: 'visited' },
+                { doctor: 'Елена Смирнова', specialty: 'Кардиолог', date: '01.06.2026', time: '14:30',
+                status: 'visited' },
+                { doctor: 'Михаил Иванов', specialty: 'Невролог', date: '20.05.2026', time: '09:00',
+                status: 'cancelled' },
+                { doctor: 'Ольга Козлова', specialty: 'Педиатр', date: '10.05.2026', time: '11:00', status: 'missed' },
+            ];
+            if (history.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">📊</div><h3>Нет истории</h3><p>Посещения будут здесь</p></div>`;
+                return;
+            }
+            container.innerHTML = history.map(item => `
+                    <div class="history-item"><div class="header"><div><div class="doctor-name">${item.doctor}</div><div class="specialty">${item.specialty}</div></div><span class="status-badge ${item.status}">${item.status === 'visited' ? '✅ Посещено' : item.status === 'cancelled' ? '❌ Отменено' : '⏳ Пропущено'}</span></div><div class="date">📅 ${item.date} в ${item.time}</div></div>
+                `).join('');
+        }
+
+        function renderNotifications() {
+            const container = document.getElementById('notificationsList');
+            if (!container) return;
+            const notifications = [
+                { id: 1, title: 'Напоминание о приеме', message: 'Завтра в 10:00 прием у врача Александра Петрова',
+                    time: 'сегодня, 14:30', status: 'unread' },
+                { id: 2, title: 'Запись подтверждена', message: 'Вы записались к Елене Смирновой на 20.06.2026 в 14:30',
+                    time: 'вчера, 16:45', status: 'read' },
+                { id: 3, title: 'Изменение в расписании', message: 'Врач Михаил Иванов перенес прием на 22.06.2026 в 11:00',
+                    time: 'вчера, 09:15', status: 'unread' },
+                { id: 4, title: 'Новый бонус', message: 'За посещение врача начислено 50 бонусов', time: '2 дня назад',
+                    status: 'read' },
+            ];
+            if (notifications.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">🔔</div><h3>Нет уведомлений</h3><p>Уведомления будут здесь</p></div>`;
+                return;
+            }
+            container.innerHTML = notifications.map(item => `
+                    <div class="notification-item"><div class="header"><div class="title">${item.title}</div><span class="status ${item.status}">${item.status === 'unread' ? '🆕 Новое' : '✅ Прочитано'}</span></div><div class="message">${item.message}</div><div class="time">🕐 ${item.time}</div></div>
+                `).join('');
+        }
+
+        function renderPayments() {
+            const container = document.getElementById('paymentsList');
+            if (!container) return;
+            const payments = [
+                { id: 1, type: 'visa', number: '**** 4532 1234 5678', expiry: '12/26', main: true },
+                { id: 2, type: 'mastercard', number: '**** 9876 5432 2100', expiry: '08/25', main: false },
+            ];
+            if (payments.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">💳</div><h3>Нет карт</h3><p>Добавьте карту</p></div>`;
+                return;
+            }
+            container.innerHTML = payments.map(item => `
+                    <div class="payment-item"><div class="card-info"><span class="card-icon">💳</span><div><div class="card-number">${item.number}</div><div class="card-expiry">Срок: ${item.expiry}</div></div>${item.main ? '<span class="card-type">Основная</span>' : ''}</div><div class="card-actions"><button onclick="showToast('Редактирование', 'info')">✏️</button><button class="danger" onclick="showToast('Карта удалена', 'info')">🗑</button></div></div>
+                `).join('');
+        }
+
+        function addPaymentMethod() {
+            const cardNumber = prompt('Введите номер карты (16 цифр):');
+            if (cardNumber && cardNumber.trim().length >= 16) { showToast('✅ Карта добавлена', 'success');
+                renderPayments(); } else if (cardNumber) { showToast('❌ Неверный номер', 'error'); }
+        }
+
+        function renderInsurance() {
+            const container = document.getElementById('insuranceInfo');
+            if (!container) return;
+            const insurance = { policy: '1234 5678 9012 3456', company: 'СОГАЗ-Мед',
+                type: 'Обязательное медицинское страхование (ОМС)', validUntil: '31.12.2026',
+                clinic: 'ГБУЗ Ленинградская ЦРБ', address: 'ст. Ленинградская, ул. Юбилейная, 15' };
+            container.innerHTML = `
+                    <div class="insurance-card"><div class="row"><span class="label">📋 Номер полиса</span><span class="value">${insurance.policy}</span></div><div class="row"><span class="label">🏢 Компания</span><span class="value">${insurance.company}</span></div><div class="row"><span class="label">📌 Тип</span><span class="value">${insurance.type}</span></div><div class="row"><span class="label">📅 До</span><span class="value">${insurance.validUntil}</span></div><div class="row"><span class="label">🏥 Поликлиника</span><span class="value">${insurance.clinic}</span></div><div class="row"><span class="label">📍 Адрес</span><span class="value">${insurance.address}</span></div></div>
+                    <button class="btn-small primary mt-12" onclick="showToast('Данные обновлены', 'success')">✏️ Редактировать</button>
+                `;
+        }
+
+        function renderFavorites() {
+            const container = document.getElementById('favoritesList');
+            if (!container) return;
+            const favorites = doctorsData.slice(0, 3);
+            if (favorites.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">❤️</div><h3>Нет избранных</h3><p>Добавьте врачей</p></div>`;
+                return;
+            }
+            container.innerHTML = favorites.map(doctor => `
+                    <div class="favorite-doctor-item"><img src="${doctor.image}" alt="${doctor.name}" class="avatar" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name)}&background=1A73E8&color=fff&size=48'"><div class="info"><div class="name">${doctor.name}</div><div class="specialty">${doctor.specialty} • ${doctor.price} ₽</div></div><div class="actions"><button onclick="showToast('Запись к ${doctor.name}', 'info')">📝</button><button class="danger" onclick="showToast('Удален из избранного', 'info')">❤️</button></div></div>
+                `).join('');
+        }
+
+        function renderRecords() {
+            const container = document.getElementById('recordsList');
+            if (!container) return;
+            const records = [
+                { id: 1, title: 'Результаты анализов', doctor: 'Александр Петров', date: '15.06.2026',
+                    description: 'Общий анализ крови, биохимия - в норме.' },
+                { id: 2, title: 'ЭКГ', doctor: 'Елена Смирнова', date: '01.06.2026',
+                    description: 'ЭКГ без патологий. ЧСС 72 удара.' },
+                { id: 3, title: 'МРТ головного мозга', doctor: 'Михаил Иванов', date: '20.05.2026',
+                    description: 'Органических изменений не выявлено.' },
+            ];
+            if (records.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">📄</div><h3>Нет записей</h3><p>Медицинские записи будут здесь</p></div>`;
+                return;
+            }
+            container.innerHTML = records.map(item => `
+                    <div class="medical-record-item"><div class="header"><div class="title">📄 ${item.title}</div><div class="date">📅 ${item.date}</div></div><div class="doctor">👨‍⚕️ ${item.doctor}</div><div class="description">${item.description}</div></div>
+                `).join('');
+        }
+
+        // =============================================================
+        // 13. CHAT BOT
+        // =============================================================
+        let chatOpen = false;
+
+        function toggleChat() {
+            chatOpen = !chatOpen;
+            document.getElementById('chatWindow').classList.toggle('active', chatOpen);
+            if (chatOpen) { document.getElementById('chatBadge').style.display = 'none';
+                document.getElementById('chatInput').focus(); }
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            const messagesContainer = document.getElementById('chatMessages');
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            messagesContainer.innerHTML +=
+                `<div class="chat-message user">${message}<span class="time">${time}</span></div>`;
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            document.getElementById('chatTyping').classList.add('active');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            setTimeout(() => {
+                document.getElementById('chatTyping').classList.remove('active');
+                const response = getBotResponse(message);
+                messagesContainer.innerHTML +=
+                    `<div class="chat-message bot"><span class="emoji">🤖</span> ${response}<span class="time">${new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'})}</span></div>`;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 1000 + Math.random() * 1000);
+        }
+
+        function getBotResponse(message) {
+            const msg = message.toLowerCase();
+            if (msg.match(/привет|здравствуй|хай/)) return 'Здравствуйте! Чем могу помочь? 👋';
+            if (msg.match(/записаться|запись/)) return 'Перейдите в "Поиск врачей" или "Новая запись". Выберите специалиста, дату и время. 📝';
+            if (msg.match(/отменить|отмена/)) return 'Отменить запись можно в разделе "Мои записи". ❌';
+            if (msg.match(/цена|стоимость/)) return 'Цены указаны в карточках врачей. Терапевт 1500-2000 ₽, специалисты 2000-3500 ₽. 💰';
+            if (msg.match(/бонус|балл/)) return 'За каждую запись +50 бонусов. 50 бонусов = 50 ₽ скидки. 🎁';
+            if (msg.match(/онлайн|дистанционно/)) return 'Врачи с отметкой 💻 Онлайн проводят консультации дистанционно. 🌐';
+            if (msg.match(/профиль|личный кабинет/)) return 'В профиле можно редактировать данные, смотреть записи и историю. 👤';
+            if (msg.match(/помощь|поддержка/)) return 'Напишите support@doctime.ru или позвоните 8-800-555-35-35. 💬';
+            if (msg.match(/спасибо|благодарю/)) return 'Пожалуйста! Обращайтесь еще. Будьте здоровы! 🏥❤️';
+            return 'Я еще учусь. Попробуйте спросить о записи, ценах, бонусах. Или свяжитесь с поддержкой: support@doctime.ru 📧';
+        }
+
+        // =============================================================
+        // 14. 3D GALLERY (НОВАЯ)
+        // =============================================================
+        let galleryIndex = 0;
+        let galleryAngle = 0;
+        let isDraggingGallery = false;
+        let lastX = 0;
+        let autoRotateInterval = null;
+        let isAutoRotatePaused = false;
+
+        function initGallery() {
+            const container = document.getElementById('carousel3d');
+            if (!container || container.children.length > 0) return;
+            const radius = 280;
+            const total = doctorsData.length;
+            const angleStep = 360 / total;
+
+            doctorsData.forEach((doctor, i) => {
+                const angle = i * angleStep;
+                const div = document.createElement('div');
+                div.className = 'carousel-item';
+                div.style.transform = `rotateY(${angle}deg) translateZ(${radius}px)`;
+
+                let badge = '';
+                if (i === 0) badge = '<div class="item-badge hot">🔥 Хит</div>';
+                else if (i === 1) badge = '<div class="item-badge new">⭐ Новый</div>';
+                else if (i === 2) badge = '<div class="item-badge top">🏆 Топ</div>';
+
+                const expPercent = Math.min(100, (doctor.experience / 30) * 100);
+
+                div.innerHTML = `
+                        ${badge}
+                        <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+                            <div class="item-image-glow"></div>
+                            <img src="${doctor.image}" alt="${doctor.name}" class="item-image" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name)}&background=1A73E8&color=fff&size=130'">
+                        </div>
+                        <div class="item-name">${doctor.name}</div>
+                        <div class="item-specialty">${doctor.specialty}</div>
+                        <div class="item-rating">
+                            ${'★'.repeat(Math.floor(doctor.rating))}${doctor.rating % 1 >= 0.5 ? '★' : '☆'}
+                            <span class="count">(${doctor.reviews})</span>
+                        </div>
+                        <div class="item-price">${doctor.price} <span class="currency">₽</span></div>
+                        <div class="item-experience"><span class="icon">⏳</span> ${doctor.experience} лет опыта</div>
+                        <div class="experience-bar">
+                            <div class="fill" style="width:${expPercent}%;"></div>
+                        </div>
+                    `;
+
+                div.addEventListener('click', () => showToast(`👨‍⚕️ ${doctor.name} - ${doctor.specialty}`));
+                container.appendChild(div);
+            });
+
+            document.getElementById('carouselTotal').textContent = total;
+
+            createDots();
+            updateIndicator();
+            startAutoRotate();
+            initDrag();
+        }
+
+        function createDots() {
+            const container = document.getElementById('carouselDots');
+            container.innerHTML = '';
+            for (let i = 0; i < doctorsData.length; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot' + (i === 0 ? ' active' : '');
+                dot.onclick = () => goToItem(i);
+                container.appendChild(dot);
+            }
+        }
+
+        function updateIndicator() {
+            document.getElementById('carouselCurrent').textContent = galleryIndex + 1;
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === galleryIndex);
+            });
+        }
+
+        function goToItem(index) {
+            const container = document.getElementById('carousel3d');
+            const total = doctorsData.length;
+            const angleStep = 360 / total;
+            galleryAngle = -index * angleStep;
+            galleryIndex = index;
+            container.style.transform = `rotateY(${galleryAngle}deg)`;
+            updateIndicator();
+        }
+
+        function rotateCarousel(direction) {
+            const total = doctorsData.length;
+            const newIndex = (galleryIndex + direction + total) % total;
+            goToItem(newIndex);
+        }
+
+        function startAutoRotate() {
+            if (autoRotateInterval) return;
+            autoRotateInterval = setInterval(() => {
+                if (!isAutoRotatePaused && !isDraggingGallery) {
+                    const container = document.getElementById('carousel3d');
+                    galleryAngle -= 0.4;
+                    container.style.transform = `rotateY(${galleryAngle}deg)`;
+                    const total = doctorsData.length;
+                    const angleStep = 360 / total;
+                    const rawIndex = Math.round(((-galleryAngle % 360) + 360) % 360 / angleStep);
+                    const newIndex = rawIndex % total;
+                    if (newIndex !== galleryIndex) {
+                        galleryIndex = newIndex;
+                        updateIndicator();
+                    }
+                }
+            }, 50);
+        }
+
+        function initDrag() {
+            const container = document.getElementById('carousel3d');
+
+            container.addEventListener('mousedown', (e) => {
+                isDraggingGallery = true;
+                lastX = e.clientX;
+                isAutoRotatePaused = true;
+                container.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDraggingGallery) return;
+                const deltaX = e.clientX - lastX;
+                galleryAngle += deltaX * 0.4;
+                container.style.transform = `rotateY(${galleryAngle}deg)`;
+                lastX = e.clientX;
+                const total = doctorsData.length;
+                const angleStep = 360 / total;
+                const rawIndex = Math.round(((-galleryAngle % 360) + 360) % 360 / angleStep);
+                const newIndex = rawIndex % total;
+                if (newIndex !== galleryIndex) {
+                    galleryIndex = newIndex;
+                    updateIndicator();
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDraggingGallery) {
+                    isDraggingGallery = false;
+                    isAutoRotatePaused = false;
+                    container.style.cursor = 'grab';
+                }
+            });
+
+            container.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                isDraggingGallery = true;
+                lastX = touch.clientX;
+                isAutoRotatePaused = true;
+            }, { passive: true });
+
+            container.addEventListener('touchmove', (e) => {
+                if (!isDraggingGallery) return;
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - lastX;
+                galleryAngle += deltaX * 0.4;
+                container.style.transform = `rotateY(${galleryAngle}deg)`;
+                lastX = touch.clientX;
+                const total = doctorsData.length;
+                const angleStep = 360 / total;
+                const rawIndex = Math.round(((-galleryAngle % 360) + 360) % 360 / angleStep);
+                const newIndex = rawIndex % total;
+                if (newIndex !== galleryIndex) {
+                    galleryIndex = newIndex;
+                    updateIndicator();
+                }
+            }, { passive: true });
+
+            container.addEventListener('touchend', () => {
+                if (isDraggingGallery) {
+                    isDraggingGallery = false;
+                    isAutoRotatePaused = false;
+                }
+            }, { passive: true });
+        }
+
+        // =============================================================
+        // 15. TOAST
+        // =============================================================
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            if (toast.classList.contains('code-toast')) {
+                setTimeout(() => {
+                    const t = document.createElement('div');
+                    t.className = 'toast ' + type;
+                    t.textContent = message;
+                    t.style.display = 'block';
+                    document.body.appendChild(t);
+                    setTimeout(() => { t.remove(); }, 2000);
+                }, 300);
+                return;
+            }
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // =============================================================
+        // 16. EXPOSE
+        // =============================================================
+        window.navigateTo = navigateTo;
+        window.filterDoctors = filterDoctors;
+        window.setFilter = setFilter;
+        window.toggleFilters = toggleFilters;
+        window.resetFilters = resetFilters;
+        window.startBooking = startBooking;
+        window.selectBookingDoctor = selectBookingDoctor;
+        window.goToStep1 = goToStep1;
+        window.goToStep2 = goToStep2;
+        window.addToCart = addToCart;
+        window.removeFromCart = removeFromCart;
+        window.clearBookingCart = clearBookingCart;
+        window.confirmAllBookings = confirmAllBookings;
+        window.cancelAppointment = cancelAppointment;
+        window.openAuth = openAuth;
+        window.closeAuth = closeAuth;
+        window.sendCode = sendCode;
+        window.verifyCode = verifyCode;
+        window.resendCode = resendCode;
+        window.goBackToPhone = goBackToPhone;
+        window.handleAuthAction = handleAuthAction;
+        window.logoutUser = logoutUser;
+        window.isAuthenticated = isAuthenticated;
+        window.showToast = showToast;
+        window.toggleChat = toggleChat;
+        window.sendChatMessage = sendChatMessage;
+        window.editProfile = editProfile;
+        window.addPaymentMethod = addPaymentMethod;
+        window.renderHistory = renderHistory;
+        window.renderNotifications = renderNotifications;
+        window.renderPayments = renderPayments;
+        window.renderInsurance = renderInsurance;
+        window.renderFavorites = renderFavorites;
+        window.renderRecords = renderRecords;
+        window.rotateCarousel = rotateCarousel;
+
+        console.log('🏥 DocTime загружен!');
+        console.log('👤 Пользователь:', authUser);
+        console.log('👨‍⚕️ Врачей:', doctorsData.length);
+        console.log('🛒 Записей в корзине:', bookingCart.length);
+        console.log('💬 Чат-бот активен!');
+        console.log('🎨 Новая 3D Галерея активна!');
+        console.log('⚡ Новый Flash-баннер активен!');
+        console.log('❤️ Медицинская анимация фона активна!');
+        console.log('📱 Фавикон установлен!');
+        console.log('📊 Все разделы профиля работают!');
+    </script>
+
+</body>
+</html>
